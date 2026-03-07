@@ -2,357 +2,863 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Vehicle Inventory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Lot Manager</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lot Manager">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1117">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230f1117' width='100' height='100' rx='20'/><text x='50' y='62' text-anchor='middle' font-size='40'>🚗</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root {
-  --brand: #1a5632;
-  --brand-light: #2a7a4a;
-  --brand-dim: rgba(26,86,50,0.08);
-  --brand-glow: rgba(26,86,50,0.15);
-  --bg: #fafaf8;
-  --surface: #ffffff;
-  --surface-2: #f3f2ee;
-  --border: #e5e3dc;
-  --border-hover: #ccc9be;
-  --text: #1a1a18;
-  --text-2: #6b6960;
-  --text-3: #9b978c;
-  --price-color: #1a5632;
-  --badge-bg: #1a1a18;
-  --badge-text: #fafaf8;
-  --radius: 10px;
-  --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-  --shadow: 0 4px 20px rgba(0,0,0,0.08);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
-  --font: 'Outfit', system-ui, sans-serif;
-  --display: 'Fraunces', Georgia, serif;
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;}
-.inv-header{padding:3rem 1.5rem 2rem;text-align:center;background:linear-gradient(180deg,var(--brand-dim) 0%,transparent 100%);}
-.inv-header h1{font-family:var(--display);font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;}
-.inv-header h1 span{color:var(--brand);}
-.inv-header .subtitle{color:var(--text-2);font-size:1rem;margin-top:0.4rem;max-width:460px;margin-left:auto;margin-right:auto;}
-.inv-stats{display:flex;justify-content:center;gap:2.5rem;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);max-width:400px;margin-left:auto;margin-right:auto;}
-.inv-stat-num{font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--brand);}
-.inv-stat-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);font-weight:600;}
-.filters-container{position:sticky;top:0;z-index:50;background:rgba(250,250,248,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0.85rem 1.5rem;}
-.filters-inner{max-width:1200px;margin:0 auto;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;}
-.search-box{flex:1;min-width:180px;position:relative;}
-.search-box svg{position:absolute;left:0.75rem;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-3);}
-.search-box input{width:100%;padding:0.6rem 0.75rem 0.6rem 2.25rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:0.85rem;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
-.search-box input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-glow);}
-.search-box input::placeholder{color:var(--text-3);}
-.filter-select{position:relative;}
-.filter-select select{appearance:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.6rem 2rem 0.6rem 0.75rem;font-family:var(--font);font-size:0.85rem;color:var(--text);cursor:pointer;outline:none;transition:border-color 0.2s,box-shadow 0.2s;min-width:120px;}
-.filter-select select:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-glow);}
-.filter-select::after{content:'';position:absolute;right:0.75rem;top:50%;transform:translateY(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--text-3);pointer-events:none;}
-.filter-count{font-size:0.8rem;color:var(--text-3);font-weight:500;white-space:nowrap;}
-.filter-count strong{color:var(--brand);font-weight:700;}
-.btn-reset{background:none;border:1px solid var(--border);color:var(--text-3);padding:0.55rem 0.85rem;border-radius:var(--radius);font-family:var(--font);font-size:0.8rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
-.btn-reset:hover{border-color:var(--brand);color:var(--brand);}
-.inventory-section{max-width:1200px;margin:0 auto;padding:1.5rem;}
-.vehicle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
-.v-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.3s,border-color 0.3s;cursor:pointer;opacity:0;transform:translateY(12px);animation:cardIn 0.4s ease forwards;}
-@keyframes cardIn{to{opacity:1;transform:none;}}
-.v-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--border-hover);}
-.card-slider{position:relative;width:100%;aspect-ratio:16/10;background:var(--surface-2);overflow:hidden;touch-action:pan-y pinch-zoom;}
-.card-slider .slides{display:flex;width:100%;height:100%;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);}
-.card-slider .slides.dragging{transition:none;}
-.card-slider .slide{min-width:100%;height:100%;position:relative;}
-.card-slider .slide img{width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none;pointer-events:none;}
-.card-slider .no-photo{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:0.85rem;flex-direction:column;gap:0.3rem;}
-.v-badge{position:absolute;top:0.7rem;left:0.7rem;background:var(--badge-bg);color:var(--badge-text);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.2rem 0.55rem;border-radius:5px;z-index:5;}
-.card-slider .slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:0.9rem;color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);z-index:5;opacity:0;transition:opacity 0.25s;}
-.v-card:hover .slider-arrow{opacity:1;}
-.card-slider .slider-arrow.prev{left:0.5rem;}
-.card-slider .slider-arrow.next{right:0.5rem;}
-.card-slider .slider-arrow:hover{background:#fff;}
-.card-slider .slider-dots{position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%);display:flex;gap:0.3rem;z-index:5;}
-.card-slider .slider-dots button{width:6px;height:6px;border-radius:50%;border:none;background:rgba(255,255,255,0.45);cursor:pointer;padding:0;transition:background 0.2s,transform 0.2s;}
-.card-slider .slider-dots button.active{background:#fff;transform:scale(1.35);}
-.card-slider .photo-count{position:absolute;bottom:0.5rem;right:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.68rem;font-weight:500;padding:0.12rem 0.45rem;border-radius:5px;z-index:5;backdrop-filter:blur(4px);}
-.v-card-body{padding:1rem 1.2rem 1.2rem;}
-.v-card-ymm{font-size:1.05rem;font-weight:700;letter-spacing:-0.01em;line-height:1.3;}
-.v-card-trim{font-size:0.82rem;color:var(--text-2);margin-top:0.1rem;}
-.v-card-specs{display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.7rem;}
-.v-chip{background:var(--surface-2);color:var(--text-2);font-size:0.72rem;font-weight:500;padding:0.2rem 0.5rem;border-radius:5px;white-space:nowrap;}
-.v-card-divider{height:1px;background:var(--border);margin:0.85rem 0;}
-.v-card-bottom{display:flex;justify-content:space-between;align-items:flex-end;}
-.v-card-price{font-family:var(--display);font-size:1.4rem;font-weight:800;color:var(--price-color);line-height:1;}
-.v-card-price-sub{font-family:var(--font);font-size:0.65rem;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;}
-.v-card-call{color:var(--brand);font-weight:600;font-size:0.9rem;}
-.v-card-cta{background:var(--brand);color:#fff;border:none;padding:0.5rem 1.1rem;border-radius:var(--radius);font-family:var(--font);font-size:0.78rem;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;}
-.v-card-cta:hover{background:var(--brand-light);transform:scale(1.03);}
-.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;padding:1.5rem;}
-.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
-.modal-card{background:var(--surface);border-radius:var(--radius-lg);max-width:860px;width:100%;margin:2rem auto;overflow:hidden;box-shadow:var(--shadow-lg);animation:modalSlide 0.35s cubic-bezier(0.25,0.46,0.45,0.94);}
-@keyframes modalSlide{from{opacity:0;transform:translateY(16px) scale(0.98);}to{opacity:1;transform:none;}}
-.modal-slider{position:relative;width:100%;aspect-ratio:16/9;background:#111;overflow:hidden;touch-action:pan-y pinch-zoom;}
-.modal-slider .slides{display:flex;width:100%;height:100%;transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);}
-.modal-slider .slides.dragging{transition:none;}
-.modal-slider .slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
-.modal-slider .slide img{max-width:100%;max-height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none;pointer-events:none;}
-.modal-close{position:absolute;top:0.75rem;right:0.75rem;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:background 0.2s;}
-.modal-close:hover{background:rgba(0,0,0,0.8);}
-.modal-slider .slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.15rem;color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);z-index:5;transition:background 0.2s;}
-.modal-slider .slider-arrow:hover{background:#fff;}
-.modal-slider .slider-arrow.prev{left:0.75rem;}
-.modal-slider .slider-arrow.next{right:0.75rem;}
-.modal-slider .slider-dots{position:absolute;bottom:0.75rem;left:50%;transform:translateX(-50%);display:flex;gap:0.4rem;z-index:5;}
-.modal-slider .slider-dots button{width:8px;height:8px;border-radius:50%;border:none;background:rgba(255,255,255,0.4);cursor:pointer;padding:0;transition:all 0.2s;}
-.modal-slider .slider-dots button.active{background:#fff;transform:scale(1.3);}
-.modal-slider .slide-counter{position:absolute;top:0.75rem;left:0.75rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.75rem;font-weight:500;padding:0.2rem 0.6rem;border-radius:5px;z-index:5;backdrop-filter:blur(4px);}
-.modal-thumbs{display:flex;gap:0.35rem;padding:0.5rem 0.75rem;background:var(--surface-2);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
-.modal-thumbs::-webkit-scrollbar{display:none;}
-.modal-thumbs button{flex-shrink:0;width:56px;height:40px;border-radius:5px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;transition:border-color 0.2s,opacity 0.2s;opacity:0.6;}
-.modal-thumbs button.active{border-color:var(--brand);opacity:1;}
-.modal-thumbs button:hover{opacity:1;}
-.modal-thumbs button img{width:100%;height:100%;object-fit:cover;}
-.modal-body{padding:1.75rem;}
-.modal-body h2{font-family:var(--display);font-size:1.6rem;font-weight:800;letter-spacing:-0.02em;}
-.modal-meta{color:var(--text-2);font-size:0.85rem;margin-top:0.2rem;}
-.modal-price-row{margin:1.25rem 0;display:flex;align-items:center;gap:1rem;}
-.modal-price{font-family:var(--display);font-size:2rem;font-weight:800;color:var(--price-color);}
-.modal-specs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0.65rem;margin-bottom:1.5rem;}
-.modal-spec-item{background:var(--surface-2);padding:0.65rem 0.85rem;border-radius:var(--radius);}
-.modal-spec-item .label{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);font-weight:600;}
-.modal-spec-item .value{font-size:0.92rem;font-weight:600;margin-top:0.1rem;}
-.modal-features-section h3{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);font-weight:600;margin-bottom:0.6rem;}
-.modal-features-list{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:1.5rem;}
-.modal-feat{background:var(--brand-dim);color:var(--brand);font-size:0.72rem;font-weight:600;padding:0.25rem 0.55rem;border-radius:5px;}
-.modal-cta-row{display:flex;gap:0.75rem;flex-wrap:wrap;}
-.btn-primary{background:var(--brand);color:#fff;border:none;padding:0.75rem 2rem;border-radius:var(--radius);font-family:var(--font);font-size:0.9rem;font-weight:700;cursor:pointer;transition:background 0.2s;}
-.btn-primary:hover{background:var(--brand-light);}
-.btn-outline{background:none;color:var(--text);border:1px solid var(--border);padding:0.75rem 1.5rem;border-radius:var(--radius);font-family:var(--font);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;text-align:center;}
-.btn-outline:hover{border-color:var(--brand);color:var(--brand);}
-.empty-state{text-align:center;padding:4rem 2rem;}
-.empty-state h3{font-size:1.15rem;margin-bottom:0.3rem;}
-.empty-state p{color:var(--text-3);font-size:0.9rem;}
-.loading-state{text-align:center;padding:4rem 2rem;color:var(--text-3);}
-.loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;}
+:root{--bg:#0f1117;--surface:#181a22;--surface-2:#1e2130;--surface-3:#262a38;--border:#2a2e3e;--border-focus:#4f8cff;--text:#e8e6e1;--text-2:#a09d94;--text-3:#6b6860;--accent:#4f8cff;--accent-dim:rgba(79,140,255,0.1);--accent-glow:rgba(79,140,255,0.2);--green:#34c77b;--green-dim:rgba(52,199,123,0.1);--orange:#f0a030;--orange-dim:rgba(240,160,48,0.1);--red:#e04848;--red-dim:rgba(224,72,72,0.1);--radius:10px;--radius-lg:16px;--font:'Outfit',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;--shadow:0 4px 24px rgba(0,0,0,0.3);--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);overflow-x:hidden;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(15,17,23,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0.6rem 1rem;display:flex;align-items:center;justify-content:space-between;}
+.topbar h1{font-family:var(--mono);font-size:0.95rem;font-weight:700;letter-spacing:-0.02em;}
+.topbar h1 span{color:var(--accent);}
+.device-badge{font-size:0.6rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:0.15rem 0.4rem;border-radius:4px;background:var(--accent-dim);color:var(--accent);}
+.connection-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:0.4rem;background:var(--red);}
+.connection-dot.connected{background:var(--green);}
+
+/* SETUP BANNER */
+.setup-banner{background:var(--orange-dim);border:1px solid rgba(240,160,48,0.3);border-radius:var(--radius);margin:1rem;padding:1rem;display:none;}
+.setup-banner h3{font-size:0.85rem;color:var(--orange);margin-bottom:0.5rem;}
+.setup-banner input{width:100%;padding:0.5rem 0.7rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:0.75rem;margin:0.3rem 0;}
+.setup-banner .btn{margin-top:0.5rem;}
+
+/* TABS */
+.tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--surface);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex:1;min-width:0;padding:0.7rem 0.5rem;text-align:center;font-family:var(--font);font-size:0.78rem;font-weight:600;color:var(--text-3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s;white-space:nowrap;position:relative;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-btn .badge{position:absolute;top:4px;right:calc(50% - 20px);background:var(--accent);color:#fff;font-size:0.55rem;font-weight:700;min-width:16px;height:16px;line-height:16px;border-radius:8px;text-align:center;display:none;}
+
+/* CONTENT */
+.tab-content{display:none;padding:1rem;max-width:800px;margin:0 auto;}
+.tab-content.active{display:block;}
+.section-title{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-3);font-weight:600;margin-bottom:0.75rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.6rem 1.2rem;border-radius:var(--radius);font-family:var(--font);font-size:0.82rem;font-weight:600;border:none;cursor:pointer;transition:all 0.2s;text-decoration:none;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{filter:brightness(1.1);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,72,72,0.2);}
+.btn-outline{background:transparent;color:var(--text-2);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:0.4rem 0.8rem;font-size:0.75rem;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius-lg);padding:2.5rem 1.5rem;text-align:center;transition:all 0.3s;cursor:pointer;margin-bottom:1rem;}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--accent-dim);}
+.upload-zone .icon{font-size:2.2rem;margin-bottom:0.5rem;}
+.upload-zone .label{font-weight:600;font-size:0.9rem;margin-bottom:0.2rem;}
+.upload-zone .hint{color:var(--text-3);font-size:0.78rem;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1rem;}
+.form-group{display:flex;flex-direction:column;gap:0.2rem;}
+.form-group.full{grid-column:1/-1;}
+.form-group label{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-3);font-weight:600;}
+.form-group input,.form-group select{padding:0.5rem 0.65rem;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font);font-size:0.85rem;outline:none;transition:border-color 0.2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+
+/* QUEUE CARDS */
+.queue-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:0.75rem;transition:border-color 0.2s;}
+.qc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;}
+.qc-ymm{font-weight:700;font-size:0.95rem;}
+.qc-stock{font-family:var(--mono);font-size:0.75rem;color:var(--text-3);}
+.qc-details{display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:0.6rem;}
+.qc-chip{font-size:0.7rem;padding:0.15rem 0.45rem;background:var(--surface-2);border-radius:4px;color:var(--text-2);}
+.qc-photos{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;}
+.qc-photos .count{font-family:var(--mono);font-weight:700;font-size:0.85rem;}
+.qc-photos .count.has{color:var(--green);}
+.qc-photos .count.zero{color:var(--text-3);}
+.qc-photos .label{font-size:0.78rem;color:var(--text-2);margin-right:auto;}
+.qc-thumbs{display:flex;gap:0.3rem;margin-bottom:0.6rem;overflow-x:auto;padding-bottom:0.3rem;}
+.qc-thumb{width:48px;height:36px;border-radius:4px;overflow:hidden;flex-shrink:0;border:1px solid var(--border);}
+.qc-thumb img{width:100%;height:100%;object-fit:cover;}
+.qc-actions{display:flex;gap:0.4rem;justify-content:flex-end;}
+
+/* PHOTO CAPTURE */
+.photo-select-view{}
+.photo-capture-view{display:none;}
+.photo-capture-view.active{display:block;}
+.photo-vehicle-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0.8rem 1rem;margin-bottom:1rem;text-align:center;}
+.photo-vehicle-header h3{font-size:1rem;font-weight:700;}
+.photo-vehicle-header p{font-size:0.78rem;color:var(--text-2);}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:0.6rem;margin-bottom:1rem;}
+.photo-slot{aspect-ratio:4/3;background:var(--surface-2);border:2px dashed var(--border);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.photo-slot:hover{border-color:var(--accent);background:var(--accent-dim);}
+.photo-slot.filled{border-style:solid;border-color:var(--green);}
+.photo-slot.filled img{width:100%;height:100%;object-fit:cover;}
+.photo-slot .ps-icon{font-size:1.6rem;margin-bottom:0.2rem;}
+.photo-slot .ps-label{font-size:0.72rem;font-weight:600;color:var(--text-2);}
+.photo-slot .ps-hint{font-size:0.62rem;color:var(--text-3);text-align:center;padding:0 0.3rem;}
+.photo-slot .ps-check{position:absolute;top:4px;right:4px;background:var(--green);color:#fff;width:18px;height:18px;border-radius:50%;font-size:0.6rem;display:none;align-items:center;justify-content:center;}
+.photo-slot.filled .ps-check{display:flex;}
+.photo-slot .ps-remove{position:absolute;top:4px;left:4px;background:rgba(224,72,72,0.8);color:#fff;width:20px;height:20px;border-radius:50%;border:none;font-size:0.7rem;cursor:pointer;display:none;align-items:center;justify-content:center;}
+.photo-slot.filled .ps-remove{display:flex;}
+.photo-progress{margin-bottom:1rem;}
+.photo-progress-bar{height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;}
+.photo-progress-bar div{height:100%;background:var(--green);transition:width 0.3s;border-radius:2px;}
+.photo-progress-label{font-size:0.72rem;color:var(--text-3);margin-top:0.3rem;text-align:center;}
+.extra-section{margin-bottom:1rem;}
+.extra-thumbs{display:flex;gap:0.3rem;flex-wrap:wrap;margin-top:0.5rem;}
+.extra-thumb{width:60px;height:45px;border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border);}
+.extra-thumb img{width:100%;height:100%;object-fit:cover;}
+.extra-thumb .et-remove{position:absolute;top:2px;right:2px;background:rgba(224,72,72,0.8);color:#fff;width:16px;height:16px;border-radius:50%;border:none;font-size:0.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* PUBLISH OVERLAY */
+.publish-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(15,17,23,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
+.publish-overlay.active{display:flex;}
+.publish-overlay .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.inv-footer{text-align:center;padding:2rem 1.5rem;color:var(--text-3);font-size:0.75rem;border-top:1px solid var(--border);margin-top:2rem;}
-@media(max-width:768px){
-  .inv-header{padding:2rem 1rem 1.5rem;}
-  .filters-container{padding:0.65rem 1rem;}
-  .filters-inner{gap:0.4rem;}
-  .filter-select select{min-width:100px;font-size:0.8rem;padding:0.5rem 1.5rem 0.5rem 0.6rem;}
-  .search-box input{font-size:0.8rem;padding:0.5rem 0.6rem 0.5rem 2rem;}
-  .inventory-section{padding:1rem;}
-  .vehicle-grid{grid-template-columns:1fr;gap:1rem;}
-  .modal-card{margin:0.5rem;}
-  .modal-body{padding:1.25rem;}
-  .modal-specs{grid-template-columns:1fr 1fr;}
-  .inv-stats{gap:1.5rem;}
-  .card-slider .slider-arrow{opacity:0.8;width:28px;height:28px;font-size:0.8rem;}
+.publish-overlay p{color:var(--text-2);font-size:0.9rem;}
+
+/* LISTINGS */
+.listing-row{display:flex;align-items:center;gap:0.75rem;padding:0.7rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.5rem;transition:border-color 0.2s;}
+.listing-row:hover{border-color:var(--accent);}
+.lr-thumb{width:50px;height:38px;border-radius:4px;overflow:hidden;background:var(--surface-2);flex-shrink:0;}
+.lr-thumb img{width:100%;height:100%;object-fit:cover;}
+.lr-info{flex:1;min-width:0;}
+.lr-ymm{font-weight:600;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lr-meta{font-size:0.72rem;color:var(--text-3);}
+.lr-price{font-family:var(--mono);font-weight:700;font-size:0.85rem;color:var(--green);}
+.lr-status{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.2rem 0.4rem;border-radius:4px;}
+.lr-status.listed{background:var(--green-dim);color:var(--green);}
+.lr-status.needs-photos{background:var(--orange-dim);color:var(--orange);}
+
+/* QR MODAL */
+.qr-modal{display:none;position:fixed;inset:0;z-index:150;background:rgba(15,17,23,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;padding:2rem;}
+.qr-modal.open{display:flex;}
+.qr-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;max-width:320px;width:100%;}
+.qr-box h3{margin-bottom:0.75rem;font-size:0.95rem;}
+.qr-container{background:#fff;padding:0.75rem;border-radius:var(--radius);display:inline-block;margin-bottom:0.75rem;}
+.qr-link{font-family:var(--mono);font-size:0.6rem;color:var(--text-3);word-break:break-all;margin-bottom:0.75rem;}
+.qr-actions{display:flex;gap:0.4rem;justify-content:center;}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100%);padding:0.6rem 1.2rem;border-radius:var(--radius);font-size:0.82rem;font-weight:600;z-index:300;transition:transform 0.3s;opacity:0;background:var(--surface-3);color:var(--text);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.success{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,199,123,0.3);}
+.toast.error{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,72,72,0.3);}
+
+/* IOS BANNER */
+.ios-banner{background:var(--accent-dim);border:1px solid rgba(79,140,255,0.2);border-radius:var(--radius);margin:1rem;padding:0.75rem 1rem;display:flex;align-items:center;gap:0.75rem;}
+.ios-banner p{font-size:0.78rem;color:var(--text-2);flex:1;}
+.ios-banner strong{color:var(--accent);}
+.ios-banner .dismiss{background:none;border:none;color:var(--text-3);font-size:1.1rem;cursor:pointer;padding:0.2rem;}
+
+@media(max-width:500px){
+  .form-grid{grid-template-columns:1fr;}
+  .photo-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}
 }
 </style>
 </head>
 <body>
-<header class="inv-header">
-  <h1>Our <span>Inventory</span></h1>
-  <p class="subtitle">Browse our selection of quality pre-owned vehicles</p>
-  <div class="inv-stats">
-    <div style="text-align:center"><div class="inv-stat-num" id="statTotal">—</div><div class="inv-stat-label">Vehicles</div></div>
-    <div style="text-align:center"><div class="inv-stat-num" id="statFrom">—</div><div class="inv-stat-label">Starting At</div></div>
-  </div>
-</header>
-<div class="filters-container">
-  <div class="filters-inner">
-    <div class="search-box">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.2-5.2m0 0A7.5 7.5 0 1 0 5.8 5.8a7.5 7.5 0 0 0 10 10z"/></svg>
-      <input type="text" id="searchInput" placeholder="Search make, model, year..." oninput="applyFilters()">
-    </div>
-    <div class="filter-select"><select id="filterMake" onchange="applyFilters()"><option value="">All Makes</option></select></div>
-    <div class="filter-select"><select id="filterType" onchange="applyFilters()"><option value="">All Types</option></select></div>
-    <div class="filter-select">
-      <select id="filterPrice" onchange="applyFilters()">
-        <option value="">Any Price</option>
-        <option value="0-10000">Under $10k</option>
-        <option value="10000-20000">$10k–$20k</option>
-        <option value="20000-30000">$20k–$30k</option>
-        <option value="30000-50000">$30k–$50k</option>
-        <option value="50000-999999">$50k+</option>
-      </select>
-    </div>
-    <button class="btn-reset" onclick="resetFilters()">Reset</button>
-    <div class="filter-count"><strong id="resultCount">0</strong> results</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <h1>Lot<span>Manager</span></h1>
+  <div style="display:flex;align-items:center;gap:0.5rem;">
+    <span class="connection-dot" id="connDot"></span>
+    <span id="connLabel" style="font-size:0.7rem;color:var(--text-3);">Not connected</span>
+    <span class="device-badge" id="deviceBadge">Desktop</span>
   </div>
 </div>
-<section class="inventory-section">
-  <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p>Loading inventory...</p></div>
-  <div class="vehicle-grid" id="vehicleGrid"></div>
-  <div class="empty-state" id="emptyState" style="display:none"><h3>No vehicles match your search</h3><p>Try adjusting your filters.</p></div>
-</section>
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal-card">
-    <div class="modal-slider" id="modalSlider">
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-      <div class="slide-counter" id="modalCounter">1 / 1</div>
-      <div class="slides" id="modalSlides"></div>
-      <button class="slider-arrow prev" onclick="modalNav(-1)">&#8249;</button>
-      <button class="slider-arrow next" onclick="modalNav(1)">&#8250;</button>
-      <div class="slider-dots" id="modalDots"></div>
+
+<!-- SETUP BANNER — shows when no API URL configured -->
+<div class="setup-banner" id="setupBanner">
+  <h3>⚡ Connect to Google Sheet</h3>
+  <p style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.5rem;">Paste your Google Apps Script Web App URL to connect the admin tool to your inventory sheet.</p>
+  <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/AKfy.../exec">
+  <button class="btn btn-primary btn-sm" onclick="saveApiUrl()">Connect</button>
+</div>
+
+<!-- iOS Add to Home Banner -->
+<div class="ios-banner" id="iosBanner" style="display:none;">
+  <p>Add to your home screen for the <strong>best experience</strong> — tap Share → Add to Home Screen</p>
+  <button class="dismiss" onclick="dismissBanner()">&times;</button>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('upload')">Upload</button>
+  <button class="tab-btn" onclick="switchTab('queue')">Queue <span class="badge" id="queueBadge">0</span></button>
+  <button class="tab-btn" onclick="switchTab('photos')">Photos</button>
+  <button class="tab-btn" onclick="switchTab('listings')">Listings</button>
+</div>
+
+<!-- ═══════ UPLOAD TAB ═══════ -->
+<div class="tab-content active" id="tab-upload">
+  <div class="section-title">Import Vehicles</div>
+  <div class="upload-zone" id="uploadZone"
+    onclick="document.getElementById('fileInput').click()"
+    ondragover="event.preventDefault();this.classList.add('dragover')"
+    ondragleave="this.classList.remove('dragover')"
+    ondrop="event.preventDefault();this.classList.remove('dragover');handleFiles(event.dataTransfer.files)">
+    <div class="icon">📄</div>
+    <div class="label">Drop Frazer export here</div>
+    <div class="hint">PDF or CSV — tap to browse</div>
+  </div>
+  <input type="file" id="fileInput" accept=".pdf,.csv" style="display:none" onchange="handleFiles(this.files)">
+
+  <div style="text-align:center;margin:1rem 0;">
+    <button class="btn btn-outline btn-sm" onclick="showManualEntry()">+ Add Vehicle Manually</button>
+  </div>
+
+  <div id="manualForm" style="display:none;">
+    <div class="section-title">Manual Entry</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Year</label><input id="mYear" placeholder="2020"></div>
+      <div class="form-group"><label>Make</label><input id="mMake" placeholder="Honda"></div>
+      <div class="form-group"><label>Model</label><input id="mModel" placeholder="Civic"></div>
+      <div class="form-group"><label>Trim</label><input id="mTrim" placeholder="EX"></div>
+      <div class="form-group"><label>Stock #</label><input id="mStock" placeholder="4010"></div>
+      <div class="form-group"><label>VIN</label><input id="mVin" placeholder="1HGBH41..."></div>
+      <div class="form-group"><label>Mileage</label><input id="mMileage" placeholder="45000"></div>
+      <div class="form-group"><label>Price</label><input id="mPrice" placeholder="18995"></div>
+      <div class="form-group"><label>Color</label><input id="mColor" placeholder="Silver"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="mType"><option value="">—</option><option>Sedan</option><option>SUV</option><option>Truck</option><option>Van</option><option>Coupe</option><option>Wagon</option><option>Convertible</option></select>
+      </div>
+      <div class="form-group"><label>Engine</label><input id="mEngine" placeholder="2.0L 4-Cyl"></div>
+      <div class="form-group"><label>Transmission</label>
+        <select id="mTrans"><option value="">—</option><option>Automatic</option><option>Manual</option><option>CVT</option></select>
+      </div>
+      <div class="form-group"><label>Drivetrain</label>
+        <select id="mDrive"><option value="">—</option><option>FWD</option><option>RWD</option><option>AWD</option><option>4WD</option></select>
+      </div>
+      <div class="form-group"><label>Fuel</label>
+        <select id="mFuel"><option value="">—</option><option>Gas</option><option>Diesel</option><option>Electric</option><option>Hybrid</option></select>
+      </div>
+      <div class="form-group full"><label>Features (semicolon-separated)</label><input id="mFeatures" placeholder="Bluetooth; Backup Camera; Heated Seats"></div>
     </div>
-    <div class="modal-thumbs" id="modalThumbs"></div>
-    <div class="modal-body" id="modalBody"></div>
+    <div style="display:flex;gap:0.5rem;justify-content:flex-end;">
+      <button class="btn btn-outline btn-sm" onclick="showManualEntry()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="addManualVehicle()">Add to Queue</button>
+    </div>
   </div>
 </div>
-<div class="inv-footer">Prices and availability subject to change. Contact us for the latest information.</div>
+
+<!-- ═══════ QUEUE TAB ═══════ -->
+<div class="tab-content" id="tab-queue">
+  <div class="section-title">Vehicles Awaiting Photos</div>
+  <div id="queueList"></div>
+</div>
+
+<!-- ═══════ PHOTOS TAB ═══════ -->
+<div class="tab-content" id="tab-photos">
+  <div id="photoSelectView" class="photo-select-view">
+    <div class="section-title">Vehicles Needing Photos</div>
+    <div id="photoSelectList"></div>
+  </div>
+
+  <div id="photoCaptureView" class="photo-capture-view">
+    <div class="photo-vehicle-header">
+      <h3 id="photoVehicleYMM">—</h3>
+      <p id="photoVehicleDetails">—</p>
+    </div>
+
+    <div class="photo-progress">
+      <div class="photo-progress-bar"><div id="photoProgressBar" style="width:0%"></div></div>
+      <div class="photo-progress-label" id="photoProgressLabel">0/7</div>
+    </div>
+
+    <div class="photo-grid" id="photoGrid"></div>
+
+    <div class="extra-section">
+      <button class="btn btn-outline btn-sm" onclick="addExtraPhotos()">+ Add More Photos</button>
+      <input type="file" id="extraPhotoInput" accept="image/*" multiple style="display:none" onchange="handleExtraPhotos(this.files)">
+      <div class="extra-thumbs" id="extraThumbs"></div>
+    </div>
+
+    <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+      <button class="btn btn-outline" onclick="backToSelect()" style="flex:1;">Back</button>
+      <button class="btn btn-success" id="publishBtn" onclick="publishVehicle()" disabled style="flex:2;">Publish to Website</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ LISTINGS TAB ═══════ -->
+<div class="tab-content" id="tab-listings">
+  <div class="section-title">Published Inventory</div>
+  <div id="listingsContainer"></div>
+</div>
+
+<!-- PUBLISH OVERLAY -->
+<div class="publish-overlay" id="publishOverlay">
+  <div class="spinner"></div>
+  <p id="publishStatus">Uploading photos...</p>
+</div>
+
+<!-- QR MODAL -->
+<div class="qr-modal" id="qrModal" onclick="if(event.target===this)closeQR()">
+  <div class="qr-box">
+    <h3>📱 Scan to add photos</h3>
+    <div class="qr-container" id="qrContainer"></div>
+    <div class="qr-link" id="qrLink"></div>
+    <div class="qr-actions">
+      <button class="btn btn-outline btn-sm" onclick="copyLink()">Copy Link</button>
+      <button class="btn btn-primary btn-sm" onclick="shareLink()">Share</button>
+      <button class="btn btn-outline btn-sm" onclick="closeQR()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-const P=new URLSearchParams(window.location.search);
-const SHEET_URL=P.get('sheet')||'';
-const BRAND_COLOR=P.get('color')||'';
-const PHONE=P.get('phone')||'';
-const CTA_TEXT=P.get('cta')||'Inquire About This Vehicle';
-if(BRAND_COLOR){const c='#'+BRAND_COLOR;const r=document.documentElement.style;r.setProperty('--brand',c);r.setProperty('--brand-light',c);r.setProperty('--price-color',c);r.setProperty('--brand-dim',c+'14');r.setProperty('--brand-glow',c+'26');}
+// ═══════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+document.getElementById('deviceBadge').textContent = isMobile ? 'Mobile' : 'Desktop';
 
-let allVehicles=[],filtered=[];
+// API URL stored in localStorage
+let API_URL = localStorage.getItem('lotmanager_api_url') || '';
 
-// Google Drive URL converter — handles all common share link formats
-function convertPhotoUrl(url){
-  url=url.trim();if(!url)return'';
-  if(url.includes('drive.google.com/uc'))return url;
-  let m=url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
-  m=url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
-  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
-  m=url.match(/drive\.google\.com.*[?&]id=([a-zA-Z0-9_-]+)/);
-  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
-  if(/^[a-zA-Z0-9_-]{20,}$/.test(url))return'https://drive.google.com/uc?export=view&id='+url;
-  return url;
-}
-function parsePhotos(raw){if(!raw)return[];return raw.split(',').map(convertPhotoUrl).filter(Boolean);}
+// Local state
+let vehicleQueue = JSON.parse(localStorage.getItem('lotmanager_queue') || '[]');
+let published = JSON.parse(localStorage.getItem('lotmanager_published') || '[]');
 
-async function loadInventory(){
-  if(!SHEET_URL){loadDemo();return;}
-  try{
-    const r=await fetch(SHEET_URL);const csv=await r.text();const rows=parseCSV(csv);
-    if(rows.length<2){loadDemo();return;}
-    const h=rows[0].map(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
-    allVehicles=rows.slice(1).map(row=>{
-      const g=(names)=>{for(const n of names){const i=h.indexOf(n);if(i>=0&&row[i])return row[i].trim();}return'';};
-      let photos=parsePhotos(g(['photos']));
-      if(!photos.length){for(let i=1;i<=20;i++){const u=g(['photo'+i]);if(u)photos.push(convertPhotoUrl(u));}}
-      return{stock:g(['stock','stockno','stocknumber']),vin:g(['vin']),year:g(['year']),make:g(['make']),model:g(['model']),trim:g(['trim','style']),type:g(['type','vehicletype']),body:g(['body','bodytype']),mileage:g(['mileage','miles']),color:g(['color','primarycolor','exteriorcolor']),engine:g(['engine']),transmission:g(['transmission','trans']),drivetrain:g(['drivetrain']),fuel:g(['fuel','fueltype']),price:parseFloat(g(['price','retailprice','internetprice']).replace(/[$,]/g,''))||0,features:g(['features','options']),photos,status:(g(['status'])||'listed').toLowerCase()};
-    }).filter(v=>v.status==='listed'&&v.make);
-    done();
-  }catch(e){console.error(e);loadDemo();}
-}
+// Photo capture state
+let currentPhotoVehicle = null;
+let slotPhotos = {};
+let extraPhotos = [];
 
-function loadDemo(){
-  allVehicles=[
-    {stock:"4010",vin:"5FNYF3H54FB013251",year:"2015",make:"Honda",model:"Pilot",trim:"EXL",type:"SUV",body:"4DR",mileage:"87,432",color:"Silver",engine:"3.5L V6",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:16995,features:"Air Conditioning; Power Windows; Power Locks; Keyless Entry; Backup Camera; Bluetooth",photos:["https://images.unsplash.com/photo-1606611013016-969c19ba27a6?w=600&q=80","https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80","https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"],status:"listed"},
-    {stock:"4022",vin:"1HGBH41JXMN109186",year:"2020",make:"Toyota",model:"Camry",trim:"SE",type:"Sedan",body:"4DR",mileage:"42,108",color:"Midnight Black",engine:"2.5L 4-Cyl",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:22495,features:"Apple CarPlay; Android Auto; Lane Departure Warning; Backup Camera; LED Headlights",photos:["https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80","https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=80"],status:"listed"},
-    {stock:"4035",vin:"3GNAXHEV0KS624519",year:"2019",make:"Chevrolet",model:"Equinox",trim:"LT",type:"SUV",body:"4DR",mileage:"55,900",color:"Summit White",engine:"1.5L Turbo",transmission:"Automatic",drivetrain:"AWD",fuel:"Gas",price:18750,features:"Heated Seats; Remote Start; Power Liftgate; Backup Camera; Apple CarPlay",photos:["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=80","https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80","https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80","https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80"],status:"listed"},
-    {stock:"4041",vin:"1FTEW1EP5KFA12345",year:"2019",make:"Ford",model:"F-150",trim:"XLT",type:"Truck",body:"Crew Cab",mileage:"61,200",color:"Oxford White",engine:"5.0L V8",transmission:"Automatic",drivetrain:"4WD",fuel:"Gas",price:32900,features:"SYNC 3; Backup Camera; Trailer Tow Package; Bed Liner; Running Boards",photos:["https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&q=80","https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80"],status:"listed"},
-    {stock:"4055",vin:"WBAPH5C55BA272862",year:"2018",make:"BMW",model:"3 Series",trim:"330i",type:"Sedan",body:"4DR",mileage:"48,750",color:"Alpine White",engine:"2.0L Turbo",transmission:"Automatic",drivetrain:"RWD",fuel:"Gas",price:24500,features:"Navigation; Sunroof; Leather Seats; Heated Seats; Parking Sensors",photos:["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"],status:"listed"},
-    {stock:"4060",vin:"5YJ3E1EA8LF123456",year:"2021",make:"Nissan",model:"Altima",trim:"SV",type:"Sedan",body:"4DR",mileage:"33,400",color:"Gun Metallic",engine:"2.5L 4-Cyl",transmission:"CVT",drivetrain:"FWD",fuel:"Gas",price:20995,features:"ProPilot Assist; Blind Spot Warning; Apple CarPlay; Android Auto",photos:["https://images.unsplash.com/photo-1549317661-bd32c8ce0220?w=600&q=80","https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&q=80","https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"],status:"listed"}
-  ];
-  done();
-}
+const PHOTO_SLOTS = [
+  { icon: '🚗', label: 'Front', hint: 'Straight-on front view' },
+  { icon: '🔙', label: 'Rear', hint: 'Straight-on back view' },
+  { icon: '🚘', label: 'Driver Side', hint: 'Full left profile' },
+  { icon: '🚖', label: 'Passenger Side', hint: 'Full right profile' },
+  { icon: '💺', label: 'Interior', hint: 'Front seats & dash' },
+  { icon: '🎛️', label: 'Dashboard', hint: 'Gauges & center console' },
+  { icon: '🔧', label: 'Engine', hint: 'Under the hood' }
+];
 
-function done(){document.getElementById('loadingState').style.display='none';populateFilters();applyFilters();updateStats();}
-function updateStats(){const l=allVehicles.filter(v=>v.status==='listed');document.getElementById('statTotal').textContent=l.length;const p=l.filter(v=>v.price>0).map(v=>v.price);document.getElementById('statFrom').textContent=p.length?'$'+Math.min(...p).toLocaleString():'—';}
-function populateFilters(){const l=allVehicles.filter(v=>v.status==='listed');fill('filterMake',[...new Set(l.map(v=>v.make).filter(Boolean))].sort(),'All Makes');fill('filterType',[...new Set(l.map(v=>v.type).filter(Boolean))].sort(),'All Types');}
-function fill(id,opts,ph){const s=document.getElementById(id);const v=s.value;s.innerHTML=`<option value="">${ph}</option>`+opts.map(o=>`<option value="${o}">${o}</option>`).join('');s.value=v;}
-function applyFilters(){const q=document.getElementById('searchInput').value.toLowerCase();const m=document.getElementById('filterMake').value;const t=document.getElementById('filterType').value;const pr=document.getElementById('filterPrice').value;filtered=allVehicles.filter(v=>{if(v.status!=='listed')return false;if(q&&!`${v.year} ${v.make} ${v.model} ${v.trim} ${v.vin} ${v.color}`.toLowerCase().includes(q))return false;if(m&&v.make!==m)return false;if(t&&v.type!==t)return false;if(pr){const[lo,hi]=pr.split('-').map(Number);if(v.price<lo||v.price>hi)return false;}return true;});document.getElementById('resultCount').textContent=filtered.length;renderGrid();}
-function resetFilters(){document.getElementById('searchInput').value='';['filterMake','filterType','filterPrice'].forEach(id=>document.getElementById(id).value='');applyFilters();}
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  checkConnection();
+  renderAll();
+  checkIOSBanner();
+  checkVehicleParam();
 
-// ═══════ TOUCH SLIDER ENGINE ═══════
-class TouchSlider{
-  constructor(container,opts={}){
-    this.container=container;this.slidesEl=container.querySelector('.slides');this.idx=0;this.total=container.querySelectorAll('.slide').length;this.onSlide=opts.onSlide||(()=>{});this.threshold=opts.threshold||50;this.startX=0;this.startY=0;this.dx=0;this.locked=false;this.mouseDown=false;this.horizontal=false;
-    this.slidesEl.addEventListener('touchstart',e=>this.onStart(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
-    this.slidesEl.addEventListener('touchmove',e=>this.onMove(e,e.touches[0].clientX,e.touches[0].clientY),{passive:false});
-    this.slidesEl.addEventListener('touchend',()=>this.onEnd());
-    this.slidesEl.addEventListener('mousedown',e=>{e.preventDefault();this.mouseDown=true;this.onStart(e.clientX,e.clientY);});
-    this._mm=e=>{if(this.mouseDown)this.onMove(e,e.clientX,e.clientY);};
-    this._mu=()=>{if(this.mouseDown){this.mouseDown=false;this.onEnd();}};
-    window.addEventListener('mousemove',this._mm);window.addEventListener('mouseup',this._mu);
-    this.update();
+  // Default to photos tab on mobile
+  if (isMobile) switchTab('photos');
+});
+
+function checkConnection() {
+  const dot = document.getElementById('connDot');
+  const label = document.getElementById('connLabel');
+  const banner = document.getElementById('setupBanner');
+
+  if (!API_URL) {
+    dot.classList.remove('connected');
+    label.textContent = 'Not connected';
+    banner.style.display = 'block';
+    return;
   }
-  onStart(x,y){this.startX=x;this.startY=y;this.dx=0;this.locked=false;this.slidesEl.classList.add('dragging');}
-  onMove(e,x,y){const dx=x-this.startX;const dy=y-this.startY;if(!this.locked){if(Math.abs(dx)>8||Math.abs(dy)>8){this.locked=true;this.horizontal=Math.abs(dx)>Math.abs(dy);}return;}if(!this.horizontal)return;e.preventDefault();this.dx=dx;const offset=-(this.idx*100)+(this.dx/this.container.offsetWidth)*100;this.slidesEl.style.transform=`translateX(${offset}%)`;}
-  onEnd(){this.slidesEl.classList.remove('dragging');if(Math.abs(this.dx)>this.threshold){if(this.dx<0&&this.idx<this.total-1)this.idx++;else if(this.dx>0&&this.idx>0)this.idx--;}this.dx=0;this.update();this.onSlide(this.idx);}
-  goto(i){this.idx=Math.max(0,Math.min(i,this.total-1));this.update();this.onSlide(this.idx);}
-  nav(dir){this.goto(this.idx+dir);}
-  update(){this.slidesEl.style.transform=`translateX(${-this.idx*100}%)`;}
-  destroy(){window.removeEventListener('mousemove',this._mm);window.removeEventListener('mouseup',this._mu);}
+
+  banner.style.display = 'none';
+  label.textContent = 'Checking...';
+
+  // Ping the API
+  fetch(API_URL + '?action=ping', { method: 'GET' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        dot.classList.add('connected');
+        label.textContent = 'Connected';
+      } else {
+        dot.classList.remove('connected');
+        label.textContent = 'Error';
+      }
+    })
+    .catch(() => {
+      dot.classList.remove('connected');
+      label.textContent = 'Offline';
+    });
 }
 
-// ═══════ CARD RENDERING ═══════
-let cardSliders={};
-function renderGrid(){
-  const g=document.getElementById('vehicleGrid'),e=document.getElementById('emptyState');
-  Object.values(cardSliders).forEach(s=>s.destroy());cardSliders={};
-  if(!filtered.length){g.innerHTML='';e.style.display='block';return;}
-  e.style.display='none';
-  g.innerHTML=filtered.map((v,i)=>{
-    const hp=v.photos&&v.photos.length>0;const gi=allVehicles.indexOf(v);const sliderId='cs_'+gi;
-    const slides=hp?v.photos.map(p=>`<div class="slide"><img src="${p}" alt="${v.year} ${v.make} ${v.model}" loading="lazy"></div>`).join(''):`<div class="slide"><div class="no-photo">No Photo</div></div>`;
-    const dots=hp&&v.photos.length>1?`<div class="slider-dots">${v.photos.map((_,j)=>`<button class="${j===0?'active':''}" onclick="event.stopPropagation();cardSliderGoto(${gi},${j})"></button>`).join('')}</div>`:'';
-    const arrows=hp&&v.photos.length>1?`<button class="slider-arrow prev" onclick="event.stopPropagation();cardSliderNav(${gi},-1)">&#8249;</button><button class="slider-arrow next" onclick="event.stopPropagation();cardSliderNav(${gi},1)">&#8250;</button>`:'';
-    const count=hp&&v.photos.length>1?`<span class="photo-count">${v.photos.length} photos</span>`:'';
-    return`<div class="v-card" style="animation-delay:${i*0.06}s" onclick="openModal(${gi})">
-      <div class="card-slider" id="${sliderId}">${v.type?`<span class="v-badge">${v.type}</span>`:''}<div class="slides">${slides}</div>${arrows}${dots}${count}</div>
-      <div class="v-card-body">
-        <div class="v-card-ymm">${v.year} ${v.make} ${v.model}</div>
-        <div class="v-card-trim">${[v.trim,v.drivetrain,v.mileage?v.mileage+' mi':''].filter(Boolean).join(' · ')}</div>
-        <div class="v-card-specs">${v.engine?`<span class="v-chip">${v.engine}</span>`:''}${v.transmission?`<span class="v-chip">${v.transmission}</span>`:''}${v.fuel?`<span class="v-chip">${v.fuel}</span>`:''}</div>
-        <div class="v-card-divider"></div>
-        <div class="v-card-bottom">
-          ${v.price>0?`<div><div class="v-card-price">$${v.price.toLocaleString()}</div><div class="v-card-price-sub">+ tax & fees</div></div>`:`<div class="v-card-call">Call for Price</div>`}
-          <button class="v-card-cta" onclick="event.stopPropagation();openModal(${gi})">View Details</button>
-        </div>
+function saveApiUrl() {
+  const url = document.getElementById('apiUrlInput').value.trim();
+  if (!url) { toast('Please paste the Web App URL', 'error'); return; }
+  API_URL = url;
+  localStorage.setItem('lotmanager_api_url', url);
+  checkConnection();
+  toast('API URL saved!', 'success');
+}
+
+function saveState() {
+  localStorage.setItem('lotmanager_queue', JSON.stringify(vehicleQueue));
+  localStorage.setItem('lotmanager_published', JSON.stringify(published));
+}
+
+function renderAll() {
+  renderQueue();
+  renderPhotoSelect();
+  renderListings();
+  updateQueueBadge();
+}
+
+// ═══════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', ['upload', 'queue', 'photos', 'listings'][i] === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('tab-' + tab);
+  if (el) el.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// FILE HANDLING (Frazer PDF & CSV)
+// ═══════════════════════════════════════════════════
+function handleFiles(files) {
+  if (!files || !files.length) return;
+  const file = files[0];
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.pdf')) parsePDF(file);
+  else if (name.endsWith('.csv')) parseCSVFile(file);
+  else toast('Please upload a PDF or CSV file', 'error');
+}
+
+async function parsePDF(file) {
+  if (typeof pdfjsLib === 'undefined') { toast('PDF library not loaded.', 'error'); return; }
+  try {
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      text += tc.items.map(x => x.str).join(' ') + '\n';
+    }
+    const vehicle = parseFrazerText(text);
+    if (vehicle.make) {
+      vehicleQueue.push(vehicle);
+      saveState(); renderAll();
+      toast(`Added: ${vehicle.year} ${vehicle.make} ${vehicle.model}`, 'success');
+      switchTab('queue');
+    } else {
+      toast('Could not parse vehicle data from PDF', 'error');
+    }
+  } catch (err) { console.error(err); toast('Error reading PDF', 'error'); }
+}
+
+async function parseCSVFile(file) {
+  const text = await file.text();
+  const rows = csvToRows(text);
+  if (rows.length < 2) { toast('CSV appears empty', 'error'); return; }
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  let added = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const get = (names) => { for (const name of names) { const idx = headers.indexOf(name); if (idx >= 0 && row[idx]) return row[idx].trim(); } return ''; };
+    const make = get(['make']);
+    if (!make) continue;
+    vehicleQueue.push({
+      id: Date.now() + '-' + i, stock: get(['stock #', 'stock', 'stock#', 'stk']),
+      vin: get(['vin']), year: get(['year']), make, model: get(['model']),
+      trim: get(['trim', 'style']), type: get(['type', 'vehicle type']),
+      body: get(['body', 'body type']), mileage: get(['mileage', 'miles']),
+      color: get(['color', 'primary color', 'exterior color']),
+      engine: get(['engine']), transmission: get(['transmission', 'trans']),
+      drivetrain: get(['drivetrain']), fuel: get(['fuel', 'fuel type']),
+      price: parseFloat(get(['price', 'retail price', 'internet price']).replace(/[$,]/g, '')) || 0,
+      features: get(['features', 'options']), photos: [], status: 'needs-photos'
+    });
+    added++;
+  }
+  saveState(); renderAll();
+  toast(`Imported ${added} vehicle${added !== 1 ? 's' : ''}`, 'success');
+  if (added) switchTab('queue');
+}
+
+function csvToRows(text) {
+  const rows = []; let cur = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i + 1];
+    if (inQ) { if (c === '"' && n === '"') { field += '"'; i++; } else if (c === '"') inQ = false; else field += c; }
+    else { if (c === '"') inQ = true; else if (c === ',') { cur.push(field); field = ''; } else if (c === '\n' || (c === '\r' && n === '\n')) { cur.push(field); field = ''; if (cur.some(x => x.trim())) rows.push(cur); cur = []; if (c === '\r') i++; } else field += c; }
+  }
+  cur.push(field); if (cur.some(x => x.trim())) rows.push(cur); return rows;
+}
+
+function parseFrazerText(text) {
+  const get = (label) => { const rx = new RegExp(label + '\\s*[:.]\\s*([^\\n]+?)(?=\\s{2,}|\\n|$)', 'i'); const m = text.match(rx); return m ? m[1].trim() : ''; };
+  let yr = get('Year'); if (yr.length === 2) yr = '20' + yr;
+  const tc = s => s ? s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '';
+  return {
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+    stock: get('Stock #') || get('Stock#'), vin: get('VIN'), year: yr,
+    make: tc(get('Make')), model: tc(get('Model')), trim: get('Style'),
+    type: tc(get('Vehicle Type')), body: get('Body Type'),
+    mileage: get('Mileage').replace(/[^0-9]/g, ''), color: tc(get('Primary Color')),
+    engine: get('Engine'), transmission: get('Transmission'), drivetrain: get('Drivetrain'),
+    fuel: tc(get('Fuel Type')),
+    price: parseFloat((get('Retail Price') || get('Internet Price')).replace(/[$,]/g, '')) || 0,
+    features: (() => { const m = text.match(/Features[\s\-]+(.+?)(?=\-{5,}|$)/is); return m ? m[1].replace(/\s+/g, ' ').trim() : ''; })(),
+    photos: [], status: 'needs-photos'
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// MANUAL ENTRY
+// ═══════════════════════════════════════════════════
+function showManualEntry() {
+  const form = document.getElementById('manualForm');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addManualVehicle() {
+  const v = {
+    id: Date.now() + '-manual', stock: document.getElementById('mStock').value,
+    vin: document.getElementById('mVin').value, year: document.getElementById('mYear').value,
+    make: document.getElementById('mMake').value, model: document.getElementById('mModel').value,
+    trim: document.getElementById('mTrim').value, type: document.getElementById('mType').value,
+    body: '', mileage: document.getElementById('mMileage').value.replace(/[^0-9]/g, ''),
+    color: document.getElementById('mColor').value, engine: document.getElementById('mEngine').value,
+    transmission: document.getElementById('mTrans').value, drivetrain: document.getElementById('mDrive').value,
+    fuel: document.getElementById('mFuel').value,
+    price: parseFloat(document.getElementById('mPrice').value.replace(/[$,]/g, '')) || 0,
+    features: document.getElementById('mFeatures').value, photos: [], status: 'needs-photos'
+  };
+  if (!v.make || !v.model) { toast('Make and Model required', 'error'); return; }
+  vehicleQueue.push(v); saveState(); renderAll();
+  toast(`Added: ${v.year} ${v.make} ${v.model}`, 'success');
+  ['mYear', 'mMake', 'mModel', 'mTrim', 'mStock', 'mVin', 'mMileage', 'mPrice', 'mColor', 'mType', 'mEngine', 'mTrans', 'mDrive', 'mFuel', 'mFeatures']
+    .forEach(id => document.getElementById(id).value = '');
+  switchTab('queue');
+}
+
+// ═══════════════════════════════════════════════════
+// QUEUE
+// ═══════════════════════════════════════════════════
+function renderQueue() {
+  const container = document.getElementById('queueList');
+  if (!vehicleQueue.length) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles in queue</p><p style="font-size:0.8rem;">Upload a Frazer export to get started</p></div>';
+    return;
+  }
+  container.innerHTML = vehicleQueue.map((v, i) => {
+    const photoCount = v.photos ? v.photos.length : 0;
+    const thumbs = (v.photos || []).slice(0, 5).map(p => `<div class="qc-thumb"><img src="${p}" alt=""></div>`).join('');
+    return `<div class="queue-card">
+      <div class="qc-header"><div class="qc-ymm">${v.year} ${v.make} ${v.model} ${v.trim || ''}</div><div class="qc-stock">#${v.stock || '—'}</div></div>
+      <div class="qc-details">
+        ${v.mileage ? `<span class="qc-chip">${parseInt(v.mileage).toLocaleString()} mi</span>` : ''}
+        ${v.engine ? `<span class="qc-chip">${v.engine}</span>` : ''}
+        ${v.color ? `<span class="qc-chip">${v.color}</span>` : ''}
+        ${v.price > 0 ? `<span class="qc-chip" style="color:var(--green);">$${v.price.toLocaleString()}</span>` : ''}
+      </div>
+      <div class="qc-photos">
+        <span class="count ${photoCount > 0 ? 'has' : 'zero'}">${photoCount}</span>
+        <span class="label">photo${photoCount !== 1 ? 's' : ''} uploaded</span>
+        ${!isMobile ? `<button class="btn btn-primary btn-sm" onclick="openQR(${i})">📱 Phone</button>` : ''}
+        <button class="btn btn-primary btn-sm" onclick="startPhotos(${i})">📷 ${photoCount > 0 ? 'Edit' : 'Add'} Photos</button>
+      </div>
+      ${thumbs ? `<div class="qc-thumbs">${thumbs}</div>` : ''}
+      <div class="qc-actions">
+        <button class="btn btn-success btn-sm" onclick="publishFromQueue(${i})" ${photoCount === 0 ? 'disabled' : ''}>Publish</button>
+        <button class="btn btn-danger btn-sm" onclick="removeFromQueue(${i})">Remove</button>
       </div>
     </div>`;
   }).join('');
-  filtered.forEach(v=>{if(v.photos&&v.photos.length>1){const gi=allVehicles.indexOf(v);const el=document.getElementById('cs_'+gi);if(el)cardSliders[gi]=new TouchSlider(el,{onSlide:idx=>updateCardDots(gi,idx)});}});
 }
-function updateCardDots(gi,idx){const el=document.getElementById('cs_'+gi);if(!el)return;el.querySelectorAll('.slider-dots button').forEach((d,i)=>d.classList.toggle('active',i===idx));}
-function cardSliderNav(gi,dir){if(cardSliders[gi])cardSliders[gi].nav(dir);}
-function cardSliderGoto(gi,idx){if(cardSliders[gi])cardSliders[gi].goto(idx);}
 
-// ═══════ MODAL ═══════
-let modalSliderInst=null;
-function openModal(idx){
-  const v=allVehicles[idx];if(!v)return;const photos=v.photos||[];
-  const o=document.getElementById('modalOverlay'),sliderEl=document.getElementById('modalSlider'),slidesEl=document.getElementById('modalSlides'),dotsEl=document.getElementById('modalDots'),thumbsEl=document.getElementById('modalThumbs'),counterEl=document.getElementById('modalCounter'),body=document.getElementById('modalBody');
-  if(modalSliderInst){modalSliderInst.destroy();modalSliderInst=null;}
-  if(photos.length){
-    sliderEl.style.display='block';
-    slidesEl.innerHTML=photos.map(p=>`<div class="slide"><img src="${p}" alt="${v.year} ${v.make} ${v.model}"></div>`).join('');
-    dotsEl.innerHTML=photos.length>1?photos.map((_,i)=>`<button class="${i===0?'active':''}" onclick="modalGoto(${i})"></button>`).join(''):'';
-    counterEl.textContent=`1 / ${photos.length}`;counterEl.style.display=photos.length>1?'block':'none';
-    if(photos.length>1){thumbsEl.style.display='flex';thumbsEl.innerHTML=photos.map((p,i)=>`<button class="${i===0?'active':''}" onclick="modalGoto(${i})"><img src="${p}" alt=""></button>`).join('');}
-    else{thumbsEl.style.display='none';}
-    setTimeout(()=>{modalSliderInst=new TouchSlider(sliderEl,{onSlide:idx=>updateModalSlide(idx,photos.length)});},50);
-  }else{sliderEl.style.display='none';thumbsEl.style.display='none';}
-  const feats=v.features?v.features.split(/[;,]/).map(f=>f.trim()).filter(Boolean):[];
-  const specs=[['Mileage',v.mileage?v.mileage+' mi':'—'],['Engine',v.engine||'—'],['Transmission',v.transmission||'—'],['Drivetrain',v.drivetrain||'—'],['Fuel',v.fuel||'—'],['Exterior',v.color||'—'],['Body',v.body||'—'],['Stock #',v.stock||'—']];
-  const phoneLink=PHONE?`<a href="tel:${PHONE}" class="btn-outline">Call ${PHONE}</a>`:'';
-  body.innerHTML=`<h2>${v.year} ${v.make} ${v.model}</h2><div class="modal-meta">${[v.trim,'VIN: '+v.vin].filter(Boolean).join(' · ')}</div><div class="modal-price-row"><div class="modal-price">${v.price>0?'$'+v.price.toLocaleString():'Call for Price'}</div></div><div class="modal-specs">${specs.map(([l,val])=>`<div class="modal-spec-item"><div class="label">${l}</div><div class="value">${val}</div></div>`).join('')}</div>${feats.length?`<div class="modal-features-section"><h3>Features & Equipment</h3><div class="modal-features-list">${feats.map(f=>`<span class="modal-feat">${f}</span>`).join('')}</div></div>`:''}<div class="modal-cta-row"><button class="btn-primary" onclick="inquire('${v.year} ${v.make} ${v.model}')">${CTA_TEXT}</button>${phoneLink}<button class="btn-outline" onclick="closeModal()">Back to Inventory</button></div>`;
-  o.classList.add('open');document.body.style.overflow='hidden';
+function updateQueueBadge() {
+  const badge = document.getElementById('queueBadge');
+  badge.textContent = vehicleQueue.length;
+  badge.style.display = vehicleQueue.length > 0 ? 'inline' : 'none';
 }
-function updateModalSlide(idx,total){document.getElementById('modalCounter').textContent=`${idx+1} / ${total}`;document.querySelectorAll('#modalDots button').forEach((d,i)=>d.classList.toggle('active',i===idx));document.querySelectorAll('#modalThumbs button').forEach((d,i)=>{d.classList.toggle('active',i===idx);if(i===idx)d.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});});}
-function modalNav(dir){if(modalSliderInst)modalSliderInst.nav(dir);}
-function modalGoto(i){if(modalSliderInst)modalSliderInst.goto(i);}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';if(modalSliderInst){modalSliderInst.destroy();modalSliderInst=null;}}
-function inquire(name){if(window.parent!==window)window.parent.postMessage({type:'vehicle-inquiry',vehicle:name},'*');if(PHONE){if(confirm('Call about the '+name+'?'))window.location.href='tel:'+PHONE;}else alert('Thank you for your interest in the '+name+'! Please use the contact form on this page.');}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='ArrowLeft'&&modalSliderInst)modalSliderInst.nav(-1);if(e.key==='ArrowRight'&&modalSliderInst)modalSliderInst.nav(1);});
 
-// ═══════ CSV PARSER ═══════
-function parseCSV(t){const rows=[];let c=[],f='',q=false;for(let i=0;i<t.length;i++){const ch=t[i],n=t[i+1];if(q){if(ch==='"'&&n==='"'){f+='"';i++;}else if(ch==='"')q=false;else f+=ch;}else{if(ch==='"')q=true;else if(ch===','){c.push(f);f='';}else if(ch==='\n'||(ch==='\r'&&n==='\n')){c.push(f);f='';if(c.some(x=>x.trim()))rows.push(c);c=[];if(ch==='\r')i++;}else f+=ch;}}c.push(f);if(c.some(x=>x.trim()))rows.push(c);return rows;}
+function removeFromQueue(idx) { vehicleQueue.splice(idx, 1); saveState(); renderAll(); }
 
-document.addEventListener('DOMContentLoaded',loadInventory);
+// ═══════════════════════════════════════════════════
+// QR CODE BRIDGE
+// ═══════════════════════════════════════════════════
+function openQR(queueIdx) {
+  const v = vehicleQueue[queueIdx];
+  const url = window.location.origin + window.location.pathname + '?vehicle=' + encodeURIComponent(v.id);
+  const container = document.getElementById('qrContainer');
+  container.innerHTML = '';
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(container, { text: url, width: 180, height: 180, colorDark: '#0f1117', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  }
+  document.getElementById('qrLink').textContent = url;
+  document.getElementById('qrModal').classList.add('open');
+}
+function closeQR() { document.getElementById('qrModal').classList.remove('open'); }
+function copyLink() {
+  const link = document.getElementById('qrLink').textContent;
+  navigator.clipboard.writeText(link).then(() => toast('Link copied!', 'success')).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = link; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); toast('Link copied!', 'success');
+  });
+}
+function shareLink() { const link = document.getElementById('qrLink').textContent; if (navigator.share) navigator.share({ title: 'Add Photos', url: link }); else copyLink(); }
+
+function checkVehicleParam() {
+  const p = new URLSearchParams(window.location.search);
+  const vid = p.get('vehicle');
+  if (vid) {
+    const idx = vehicleQueue.findIndex(v => v.id === vid);
+    if (idx >= 0) { startPhotos(idx); switchTab('photos'); }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PHOTO CAPTURE
+// ═══════════════════════════════════════════════════
+function renderPhotoSelect() {
+  const list = document.getElementById('photoSelectList');
+  const needsPhotos = vehicleQueue.filter(v => !v.photos || v.photos.length < 3);
+  if (!needsPhotos.length) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles waiting for photos</p></div>';
+    return;
+  }
+  list.innerHTML = needsPhotos.map(v => {
+    const idx = vehicleQueue.indexOf(v);
+    const ct = v.photos ? v.photos.length : 0;
+    return `<div class="listing-row" onclick="startPhotos(${idx})" style="cursor:pointer;">
+      <div class="lr-thumb" style="display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🚗</div>
+      <div class="lr-info"><div class="lr-ymm">${v.year} ${v.make} ${v.model}</div><div class="lr-meta">${ct} photo${ct !== 1 ? 's' : ''} · Stock #${v.stock || '—'}</div></div>
+      <span class="lr-status needs-photos">${ct > 0 ? ct + ' photos' : 'Needs Photos'}</span>
+    </div>`;
+  }).join('');
+}
+
+function startPhotos(queueIdx) {
+  currentPhotoVehicle = queueIdx;
+  slotPhotos = {}; extraPhotos = [];
+  const v = vehicleQueue[queueIdx];
+  if (v.photos) { v.photos.forEach((p, i) => { if (i < PHOTO_SLOTS.length) slotPhotos[i] = p; else extraPhotos.push(p); }); }
+  document.getElementById('photoVehicleYMM').textContent = `${v.year} ${v.make} ${v.model} ${v.trim || ''}`;
+  document.getElementById('photoVehicleDetails').textContent = [v.color, v.mileage ? parseInt(v.mileage).toLocaleString() + ' mi' : '', 'Stock #' + (v.stock || '—')].filter(Boolean).join(' · ');
+  renderPhotoGrid(); renderExtraThumbs(); updatePhotoProgress();
+  document.getElementById('photoSelectView').style.display = 'none';
+  document.getElementById('photoCaptureView').classList.add('active');
+  switchTab('photos');
+}
+
+function renderPhotoGrid() {
+  document.getElementById('photoGrid').innerHTML = PHOTO_SLOTS.map((slot, i) => {
+    const hasPhoto = slotPhotos[i];
+    return `<div class="photo-slot ${hasPhoto ? 'filled' : ''}" onclick="captureSlot(${i})">
+      ${hasPhoto ? `<img src="${hasPhoto}" alt="${slot.label}">` : ''}
+      <span class="ps-check">✓</span>
+      <button class="ps-remove" onclick="event.stopPropagation();removeSlotPhoto(${i})">&times;</button>
+      ${!hasPhoto ? `<div class="ps-icon">${slot.icon}</div><div class="ps-label">${slot.label}</div><div class="ps-hint">${slot.hint}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function captureSlot(idx) {
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*';
+  if (isMobile) input.setAttribute('capture', 'environment');
+  input.onchange = (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    compressAndStore(file, (dataUrl) => { slotPhotos[idx] = dataUrl; renderPhotoGrid(); updatePhotoProgress(); syncPhotosToQueue(); });
+  };
+  input.click();
+}
+
+function removeSlotPhoto(idx) { delete slotPhotos[idx]; renderPhotoGrid(); updatePhotoProgress(); syncPhotosToQueue(); }
+
+function addExtraPhotos() { document.getElementById('extraPhotoInput').click(); }
+
+function handleExtraPhotos(files) {
+  Array.from(files).forEach(file => {
+    compressAndStore(file, (dataUrl) => { extraPhotos.push(dataUrl); renderExtraThumbs(); updatePhotoProgress(); syncPhotosToQueue(); });
+  });
+}
+
+function renderExtraThumbs() {
+  document.getElementById('extraThumbs').innerHTML = extraPhotos.map((p, i) => `
+    <div class="extra-thumb"><img src="${p}" alt=""><div class="et-remove" onclick="removeExtraPhoto(${i})">&times;</div></div>
+  `).join('');
+}
+
+function removeExtraPhoto(idx) { extraPhotos.splice(idx, 1); renderExtraThumbs(); updatePhotoProgress(); syncPhotosToQueue(); }
+
+function updatePhotoProgress() {
+  const filled = Object.keys(slotPhotos).length;
+  const total = PHOTO_SLOTS.length;
+  const extra = extraPhotos.length;
+  const pct = Math.min(100, (filled / total) * 100);
+  document.getElementById('photoProgressBar').style.width = pct + '%';
+  document.getElementById('photoProgressLabel').textContent = `${filled}/${total}` + (extra > 0 ? ` +${extra}` : '');
+  document.getElementById('publishBtn').disabled = (filled + extra) === 0;
+}
+
+function syncPhotosToQueue() {
+  if (currentPhotoVehicle === null) return;
+  const allPhotos = [];
+  for (let i = 0; i < PHOTO_SLOTS.length; i++) { if (slotPhotos[i]) allPhotos.push(slotPhotos[i]); }
+  allPhotos.push(...extraPhotos);
+  vehicleQueue[currentPhotoVehicle].photos = allPhotos;
+  saveState();
+}
+
+function compressAndStore(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) { if (w > h) { h = (h / w) * MAX; w = MAX; } else { w = (w / h) * MAX; h = MAX; } }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function backToSelect() {
+  currentPhotoVehicle = null;
+  document.getElementById('photoCaptureView').classList.remove('active');
+  document.getElementById('photoSelectView').style.display = 'block';
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════
+// PUBLISH — sends data + photos to Google Apps Script
+// ═══════════════════════════════════════════════════
+async function publishFromQueue(idx) {
+  const v = vehicleQueue[idx];
+
+  if (!API_URL) {
+    toast('Connect to Google Sheet first (see setup banner)', 'error');
+    document.getElementById('setupBanner').style.display = 'block';
+    switchTab('upload');
+    return;
+  }
+
+  // Show overlay
+  const overlay = document.getElementById('publishOverlay');
+  const statusEl = document.getElementById('publishStatus');
+  overlay.classList.add('active');
+
+  try {
+    statusEl.textContent = `Uploading ${v.photos ? v.photos.length : 0} photos...`;
+
+    const payload = {
+      action: 'publish',
+      vehicle: {
+        stock: v.stock, vin: v.vin, year: v.year, make: v.make, model: v.model,
+        trim: v.trim, type: v.type, body: v.body, mileage: v.mileage,
+        color: v.color, engine: v.engine, transmission: v.transmission,
+        drivetrain: v.drivetrain, fuel: v.fuel, price: v.price,
+        features: v.features, status: 'listed'
+      },
+      photos: v.photos || []
+    };
+
+    statusEl.textContent = 'Saving to Google Sheet...';
+
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // Apps Script requires text/plain for CORS
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Move to published list locally
+      v.status = 'listed';
+      v.publishedAt = new Date().toISOString();
+      if (result.photoUrls) v.drivePhotoUrls = result.photoUrls;
+      published.push(v);
+      vehicleQueue.splice(idx, 1);
+      saveState();
+      renderAll();
+      toast(`Published: ${v.year} ${v.make} ${v.model}`, 'success');
+      switchTab('listings');
+    } else {
+      toast('Error: ' + (result.error || 'Unknown error'), 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    toast('Network error — check your connection', 'error');
+  } finally {
+    overlay.classList.remove('active');
+  }
+}
+
+function publishVehicle() {
+  if (currentPhotoVehicle === null) return;
+  syncPhotosToQueue();
+  const idx = currentPhotoVehicle;
+  currentPhotoVehicle = null;
+  document.getElementById('photoCaptureView').classList.remove('active');
+  document.getElementById('photoSelectView').style.display = 'block';
+  publishFromQueue(idx);
+}
+
+// ═══════════════════════════════════════════════════
+// LISTINGS
+// ═══════════════════════════════════════════════════
+function renderListings() {
+  const container = document.getElementById('listingsContainer');
+  if (!published.length) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles published yet</p></div>';
+    return;
+  }
+  container.innerHTML = published.map((v, i) => {
+    const thumb = v.photos && v.photos.length > 0 ? v.photos[0] : '';
+    return `<div class="listing-row">
+      <div class="lr-thumb">${thumb ? `<img src="${thumb}" alt="">` : ''}</div>
+      <div class="lr-info"><div class="lr-ymm">${v.year} ${v.make} ${v.model}</div><div class="lr-meta">${v.photos ? v.photos.length : 0} photos · Stock #${v.stock || '—'}</div></div>
+      <div class="lr-price">${v.price > 0 ? '$' + v.price.toLocaleString() : '—'}</div>
+      <span class="lr-status listed">Live</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════
+function toast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function checkIOSBanner() {
+  const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem('iosBannerDismissed');
+  if (isIos && !isStandalone && !dismissed) document.getElementById('iosBanner').style.display = 'flex';
+}
+
+function dismissBanner() {
+  document.getElementById('iosBanner').style.display = 'none';
+  localStorage.setItem('iosBannerDismissed', '1');
+}
 </script>
 </body>
 </html>
