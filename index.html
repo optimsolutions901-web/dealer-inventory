@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Vehicle Inventory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fraunces:opsz,wght@9..144,700;9..144,800&display=swap" rel="stylesheet">
@@ -34,8 +34,6 @@
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh;}
-
-/* ══════ HEADER ══════ */
 .inv-header{padding:3rem 1.5rem 2rem;text-align:center;background:linear-gradient(180deg,var(--brand-dim) 0%,transparent 100%);}
 .inv-header h1{font-family:var(--display);font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:800;letter-spacing:-0.03em;line-height:1.15;}
 .inv-header h1 span{color:var(--brand);}
@@ -43,8 +41,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .inv-stats{display:flex;justify-content:center;gap:2.5rem;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);max-width:400px;margin-left:auto;margin-right:auto;}
 .inv-stat-num{font-family:var(--display);font-size:1.6rem;font-weight:800;color:var(--brand);}
 .inv-stat-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--text-3);font-weight:600;}
-
-/* ══════ FILTERS ══════ */
 .filters-container{position:sticky;top:0;z-index:50;background:rgba(250,250,248,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0.85rem 1.5rem;}
 .filters-inner{max-width:1200px;margin:0 auto;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;}
 .search-box{flex:1;min-width:180px;position:relative;}
@@ -60,21 +56,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .filter-count strong{color:var(--brand);font-weight:700;}
 .btn-reset{background:none;border:1px solid var(--border);color:var(--text-3);padding:0.55rem 0.85rem;border-radius:var(--radius);font-family:var(--font);font-size:0.8rem;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
 .btn-reset:hover{border-color:var(--brand);color:var(--brand);}
-
-/* ══════ GRID ══════ */
 .inventory-section{max-width:1200px;margin:0 auto;padding:1.5rem;}
 .vehicle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;}
-
-/* ══════ CARD ══════ */
 .v-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94),box-shadow 0.3s,border-color 0.3s;cursor:pointer;opacity:0;transform:translateY(12px);animation:cardIn 0.4s ease forwards;}
 @keyframes cardIn{to{opacity:1;transform:none;}}
 .v-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--border-hover);}
-.v-card-img{position:relative;width:100%;aspect-ratio:16/10;background:var(--surface-2);overflow:hidden;}
-.v-card-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);}
-.v-card:hover .v-card-img img{transform:scale(1.04);}
-.v-card-img .no-photo{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:0.85rem;flex-direction:column;gap:0.3rem;}
-.v-badge{position:absolute;top:0.7rem;left:0.7rem;background:var(--badge-bg);color:var(--badge-text);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.2rem 0.55rem;border-radius:5px;}
-.v-photo-count{position:absolute;bottom:0.7rem;right:0.7rem;background:rgba(0,0,0,0.65);color:#fff;font-size:0.7rem;font-weight:500;padding:0.15rem 0.5rem;border-radius:5px;backdrop-filter:blur(4px);}
+.card-slider{position:relative;width:100%;aspect-ratio:16/10;background:var(--surface-2);overflow:hidden;touch-action:pan-y pinch-zoom;}
+.card-slider .slides{display:flex;width:100%;height:100%;transition:transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94);}
+.card-slider .slides.dragging{transition:none;}
+.card-slider .slide{min-width:100%;height:100%;position:relative;}
+.card-slider .slide img{width:100%;height:100%;object-fit:cover;-webkit-user-drag:none;user-select:none;pointer-events:none;}
+.card-slider .no-photo{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3);font-size:0.85rem;flex-direction:column;gap:0.3rem;}
+.v-badge{position:absolute;top:0.7rem;left:0.7rem;background:var(--badge-bg);color:var(--badge-text);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:0.2rem 0.55rem;border-radius:5px;z-index:5;}
+.card-slider .slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:0.9rem;color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);z-index:5;opacity:0;transition:opacity 0.25s;}
+.v-card:hover .slider-arrow{opacity:1;}
+.card-slider .slider-arrow.prev{left:0.5rem;}
+.card-slider .slider-arrow.next{right:0.5rem;}
+.card-slider .slider-arrow:hover{background:#fff;}
+.card-slider .slider-dots{position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%);display:flex;gap:0.3rem;z-index:5;}
+.card-slider .slider-dots button{width:6px;height:6px;border-radius:50%;border:none;background:rgba(255,255,255,0.45);cursor:pointer;padding:0;transition:background 0.2s,transform 0.2s;}
+.card-slider .slider-dots button.active{background:#fff;transform:scale(1.35);}
+.card-slider .photo-count{position:absolute;bottom:0.5rem;right:0.6rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.68rem;font-weight:500;padding:0.12rem 0.45rem;border-radius:5px;z-index:5;backdrop-filter:blur(4px);}
 .v-card-body{padding:1rem 1.2rem 1.2rem;}
 .v-card-ymm{font-size:1.05rem;font-weight:700;letter-spacing:-0.01em;line-height:1.3;}
 .v-card-trim{font-size:0.82rem;color:var(--text-2);margin-top:0.1rem;}
@@ -87,23 +89,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .v-card-call{color:var(--brand);font-weight:600;font-size:0.9rem;}
 .v-card-cta{background:var(--brand);color:#fff;border:none;padding:0.5rem 1.1rem;border-radius:var(--radius);font-family:var(--font);font-size:0.78rem;font-weight:600;cursor:pointer;transition:background 0.2s,transform 0.15s;}
 .v-card-cta:hover{background:var(--brand-light);transform:scale(1.03);}
-
-/* ══════ MODAL ══════ */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;padding:1.5rem;}
 .modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
 .modal-card{background:var(--surface);border-radius:var(--radius-lg);max-width:860px;width:100%;margin:2rem auto;overflow:hidden;box-shadow:var(--shadow-lg);animation:modalSlide 0.35s cubic-bezier(0.25,0.46,0.45,0.94);}
 @keyframes modalSlide{from{opacity:0;transform:translateY(16px) scale(0.98);}to{opacity:1;transform:none;}}
-.modal-gallery{position:relative;width:100%;aspect-ratio:16/9;background:var(--surface-2);overflow:hidden;}
-.modal-gallery img{width:100%;height:100%;object-fit:cover;}
-.modal-close{position:absolute;top:0.75rem;right:0.75rem;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;z-index:10;}
+.modal-slider{position:relative;width:100%;aspect-ratio:16/9;background:#111;overflow:hidden;touch-action:pan-y pinch-zoom;}
+.modal-slider .slides{display:flex;width:100%;height:100%;transition:transform 0.4s cubic-bezier(0.25,0.46,0.45,0.94);}
+.modal-slider .slides.dragging{transition:none;}
+.modal-slider .slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.modal-slider .slide img{max-width:100%;max-height:100%;object-fit:contain;-webkit-user-drag:none;user-select:none;pointer-events:none;}
+.modal-close{position:absolute;top:0.75rem;right:0.75rem;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;z-index:10;transition:background 0.2s;}
 .modal-close:hover{background:rgba(0,0,0,0.8);}
-.modal-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border:none;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.1rem;color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);}
-.modal-nav:hover{background:#fff;}
-.modal-nav.prev{left:0.75rem;}
-.modal-nav.next{right:0.75rem;}
-.modal-dots{position:absolute;bottom:0.75rem;left:50%;transform:translateX(-50%);display:flex;gap:0.35rem;}
-.modal-dots button{width:7px;height:7px;border-radius:50%;border:none;background:rgba(255,255,255,0.45);cursor:pointer;transition:background 0.2s,transform 0.2s;}
-.modal-dots button.active{background:#fff;transform:scale(1.3);}
+.modal-slider .slider-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);backdrop-filter:blur(4px);border:none;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.15rem;color:var(--text);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);z-index:5;transition:background 0.2s;}
+.modal-slider .slider-arrow:hover{background:#fff;}
+.modal-slider .slider-arrow.prev{left:0.75rem;}
+.modal-slider .slider-arrow.next{right:0.75rem;}
+.modal-slider .slider-dots{position:absolute;bottom:0.75rem;left:50%;transform:translateX(-50%);display:flex;gap:0.4rem;z-index:5;}
+.modal-slider .slider-dots button{width:8px;height:8px;border-radius:50%;border:none;background:rgba(255,255,255,0.4);cursor:pointer;padding:0;transition:all 0.2s;}
+.modal-slider .slider-dots button.active{background:#fff;transform:scale(1.3);}
+.modal-slider .slide-counter{position:absolute;top:0.75rem;left:0.75rem;background:rgba(0,0,0,0.6);color:#fff;font-size:0.75rem;font-weight:500;padding:0.2rem 0.6rem;border-radius:5px;z-index:5;backdrop-filter:blur(4px);}
+.modal-thumbs{display:flex;gap:0.35rem;padding:0.5rem 0.75rem;background:var(--surface-2);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.modal-thumbs::-webkit-scrollbar{display:none;}
+.modal-thumbs button{flex-shrink:0;width:56px;height:40px;border-radius:5px;overflow:hidden;border:2px solid transparent;cursor:pointer;padding:0;transition:border-color 0.2s,opacity 0.2s;opacity:0.6;}
+.modal-thumbs button.active{border-color:var(--brand);opacity:1;}
+.modal-thumbs button:hover{opacity:1;}
+.modal-thumbs button img{width:100%;height:100%;object-fit:cover;}
 .modal-body{padding:1.75rem;}
 .modal-body h2{font-family:var(--display);font-size:1.6rem;font-weight:800;letter-spacing:-0.02em;}
 .modal-meta{color:var(--text-2);font-size:0.85rem;margin-top:0.2rem;}
@@ -119,21 +129,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .modal-cta-row{display:flex;gap:0.75rem;flex-wrap:wrap;}
 .btn-primary{background:var(--brand);color:#fff;border:none;padding:0.75rem 2rem;border-radius:var(--radius);font-family:var(--font);font-size:0.9rem;font-weight:700;cursor:pointer;transition:background 0.2s;}
 .btn-primary:hover{background:var(--brand-light);}
-.btn-outline{background:none;color:var(--text);border:1px solid var(--border);padding:0.75rem 1.5rem;border-radius:var(--radius);font-family:var(--font);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-outline{background:none;color:var(--text);border:1px solid var(--border);padding:0.75rem 1.5rem;border-radius:var(--radius);font-family:var(--font);font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-decoration:none;text-align:center;}
 .btn-outline:hover{border-color:var(--brand);color:var(--brand);}
-
-/* ══════ STATES ══════ */
 .empty-state{text-align:center;padding:4rem 2rem;}
 .empty-state h3{font-size:1.15rem;margin-bottom:0.3rem;}
 .empty-state p{color:var(--text-3);font-size:0.9rem;}
 .loading-state{text-align:center;padding:4rem 2rem;color:var(--text-3);}
 .loading-spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;}
 @keyframes spin{to{transform:rotate(360deg);}}
-
-/* ══════ FOOTER ══════ */
 .inv-footer{text-align:center;padding:2rem 1.5rem;color:var(--text-3);font-size:0.75rem;border-top:1px solid var(--border);margin-top:2rem;}
-
-/* ══════ RESPONSIVE ══════ */
 @media(max-width:768px){
   .inv-header{padding:2rem 1rem 1.5rem;}
   .filters-container{padding:0.65rem 1rem;}
@@ -146,11 +150,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
   .modal-body{padding:1.25rem;}
   .modal-specs{grid-template-columns:1fr 1fr;}
   .inv-stats{gap:1.5rem;}
+  .card-slider .slider-arrow{opacity:0.8;width:28px;height:28px;font-size:0.8rem;}
 }
 </style>
 </head>
 <body>
-
 <header class="inv-header">
   <h1>Our <span>Inventory</span></h1>
   <p class="subtitle">Browse our selection of quality pre-owned vehicles</p>
@@ -159,7 +163,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
     <div style="text-align:center"><div class="inv-stat-num" id="statFrom">—</div><div class="inv-stat-label">Starting At</div></div>
   </div>
 </header>
-
 <div class="filters-container">
   <div class="filters-inner">
     <div class="search-box">
@@ -182,162 +185,128 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
     <div class="filter-count"><strong id="resultCount">0</strong> results</div>
   </div>
 </div>
-
 <section class="inventory-section">
   <div id="loadingState" class="loading-state"><div class="loading-spinner"></div><p>Loading inventory...</p></div>
   <div class="vehicle-grid" id="vehicleGrid"></div>
   <div class="empty-state" id="emptyState" style="display:none"><h3>No vehicles match your search</h3><p>Try adjusting your filters.</p></div>
 </section>
-
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal-card">
-    <div class="modal-gallery" id="modalGallery">
+    <div class="modal-slider" id="modalSlider">
       <button class="modal-close" onclick="closeModal()">&times;</button>
-      <img id="modalImg" src="" alt="">
-      <button class="modal-nav prev" onclick="navGallery(-1)">&#8249;</button>
-      <button class="modal-nav next" onclick="navGallery(1)">&#8250;</button>
-      <div class="modal-dots" id="modalDots"></div>
+      <div class="slide-counter" id="modalCounter">1 / 1</div>
+      <div class="slides" id="modalSlides"></div>
+      <button class="slider-arrow prev" onclick="modalNav(-1)">&#8249;</button>
+      <button class="slider-arrow next" onclick="modalNav(1)">&#8250;</button>
+      <div class="slider-dots" id="modalDots"></div>
     </div>
+    <div class="modal-thumbs" id="modalThumbs"></div>
     <div class="modal-body" id="modalBody"></div>
   </div>
 </div>
-
 <div class="inv-footer">Prices and availability subject to change. Contact us for the latest information.</div>
 
 <script>
-// ═══════════════════════════════════════════════════
-// CONFIG — read from URL params
-// ?sheet=GOOGLE_SHEET_CSV_URL
-// &color=1a5632 (brand hex, no #)
-// &phone=9015550199
-// &cta=Call+Us (button text)
-// ═══════════════════════════════════════════════════
-const P = new URLSearchParams(window.location.search);
-const SHEET_URL = P.get('sheet') || '';
-const BRAND_COLOR = P.get('color') || '';
-const PHONE = P.get('phone') || '';
-const CTA_TEXT = P.get('cta') || 'Inquire About This Vehicle';
+const P=new URLSearchParams(window.location.search);
+const SHEET_URL=P.get('sheet')||'';
+const BRAND_COLOR=P.get('color')||'';
+const PHONE=P.get('phone')||'';
+const CTA_TEXT=P.get('cta')||'Inquire About This Vehicle';
+if(BRAND_COLOR){const c='#'+BRAND_COLOR;const r=document.documentElement.style;r.setProperty('--brand',c);r.setProperty('--brand-light',c);r.setProperty('--price-color',c);r.setProperty('--brand-dim',c+'14');r.setProperty('--brand-glow',c+'26');}
 
-if (BRAND_COLOR) {
-  const c = '#' + BRAND_COLOR;
-  const r = document.documentElement.style;
-  r.setProperty('--brand', c);
-  r.setProperty('--brand-light', c);
-  r.setProperty('--price-color', c);
-  r.setProperty('--brand-dim', c + '14');
-  r.setProperty('--brand-glow', c + '26');
+let allVehicles=[],filtered=[];
+
+// Google Drive URL converter — handles all common share link formats
+function convertPhotoUrl(url){
+  url=url.trim();if(!url)return'';
+  if(url.includes('drive.google.com/uc'))return url;
+  let m=url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
+  m=url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
+  m=url.match(/drive\.google\.com.*[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m)return'https://drive.google.com/uc?export=view&id='+m[1];
+  if(/^[a-zA-Z0-9_-]{20,}$/.test(url))return'https://drive.google.com/uc?export=view&id='+url;
+  return url;
 }
+function parsePhotos(raw){if(!raw)return[];return raw.split(',').map(convertPhotoUrl).filter(Boolean);}
 
-// ═══════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════
-let allVehicles = [], filtered = [], modalPhotos = [], modalIdx = 0;
-
-// ═══════════════════════════════════════════════════
-// GOOGLE SHEETS LOADER
-// Expected columns (row 1 = headers):
-// Stock# | VIN | Year | Make | Model | Trim | Type | Body |
-// Mileage | Color | Engine | Transmission | Drivetrain | Fuel |
-// Price | Features | Photo1 | Photo2 | Photo3 | Photo4 |
-// Photo5 | Photo6 | Photo7 | Photo8 | Status
-//
-// Status = "listed" to show on site
-// Photos = direct image URLs
-// Google Drive: https://drive.google.com/uc?export=view&id=FILE_ID
-// ═══════════════════════════════════════════════════
-
-async function loadInventory() {
-  if (!SHEET_URL) { loadDemo(); return; }
-  try {
-    const r = await fetch(SHEET_URL);
-    const csv = await r.text();
-    const rows = parseCSV(csv);
-    if (rows.length < 2) { loadDemo(); return; }
-    const h = rows[0].map(x => x.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
-    allVehicles = rows.slice(1).map(row => {
-      const g = (names) => { for(const n of names){const i=h.indexOf(n);if(i>=0&&row[i])return row[i].trim();} return ''; };
-      const photos = [];
-      for(let i=1;i<=8;i++){const u=g(['photo'+i]);if(u)photos.push(u);}
-      return {
-        stock:g(['stock','stockno','stocknumber']), vin:g(['vin']),
-        year:g(['year']), make:g(['make']), model:g(['model']),
-        trim:g(['trim','style']), type:g(['type','vehicletype']),
-        body:g(['body','bodytype']), mileage:g(['mileage','miles']),
-        color:g(['color','primarycolor','exteriorcolor']),
-        engine:g(['engine']), transmission:g(['transmission','trans']),
-        drivetrain:g(['drivetrain']), fuel:g(['fuel','fueltype']),
-        price:parseFloat(g(['price','retailprice','internetprice']).replace(/[$,]/g,''))||0,
-        features:g(['features','options']), photos, status:(g(['status'])||'listed').toLowerCase()
-      };
-    }).filter(v => v.status==='listed' && v.make);
+async function loadInventory(){
+  if(!SHEET_URL){loadDemo();return;}
+  try{
+    const r=await fetch(SHEET_URL);const csv=await r.text();const rows=parseCSV(csv);
+    if(rows.length<2){loadDemo();return;}
+    const h=rows[0].map(x=>x.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
+    allVehicles=rows.slice(1).map(row=>{
+      const g=(names)=>{for(const n of names){const i=h.indexOf(n);if(i>=0&&row[i])return row[i].trim();}return'';};
+      let photos=parsePhotos(g(['photos']));
+      if(!photos.length){for(let i=1;i<=20;i++){const u=g(['photo'+i]);if(u)photos.push(convertPhotoUrl(u));}}
+      return{stock:g(['stock','stockno','stocknumber']),vin:g(['vin']),year:g(['year']),make:g(['make']),model:g(['model']),trim:g(['trim','style']),type:g(['type','vehicletype']),body:g(['body','bodytype']),mileage:g(['mileage','miles']),color:g(['color','primarycolor','exteriorcolor']),engine:g(['engine']),transmission:g(['transmission','trans']),drivetrain:g(['drivetrain']),fuel:g(['fuel','fueltype']),price:parseFloat(g(['price','retailprice','internetprice']).replace(/[$,]/g,''))||0,features:g(['features','options']),photos,status:(g(['status'])||'listed').toLowerCase()};
+    }).filter(v=>v.status==='listed'&&v.make);
     done();
-  } catch(e) { console.error(e); loadDemo(); }
+  }catch(e){console.error(e);loadDemo();}
 }
 
-function loadDemo() {
-  allVehicles = [
-    {stock:"4010",vin:"5FNYF3H54FB013251",year:"2015",make:"Honda",model:"Pilot",trim:"EXL",type:"SUV",body:"4DR",mileage:"87,432",color:"Silver",engine:"3.5L V6",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:16995,features:"Air Conditioning; Power Windows; Power Locks; Keyless Entry; Backup Camera; Bluetooth",photos:["https://images.unsplash.com/photo-1606611013016-969c19ba27a6?w=600&q=80"],status:"listed"},
-    {stock:"4022",vin:"1HGBH41JXMN109186",year:"2020",make:"Toyota",model:"Camry",trim:"SE",type:"Sedan",body:"4DR",mileage:"42,108",color:"Midnight Black",engine:"2.5L 4-Cyl",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:22495,features:"Apple CarPlay; Android Auto; Lane Departure Warning; Backup Camera; LED Headlights",photos:["https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80"],status:"listed"},
-    {stock:"4035",vin:"3GNAXHEV0KS624519",year:"2019",make:"Chevrolet",model:"Equinox",trim:"LT",type:"SUV",body:"4DR",mileage:"55,900",color:"Summit White",engine:"1.5L Turbo",transmission:"Automatic",drivetrain:"AWD",fuel:"Gas",price:18750,features:"Heated Seats; Remote Start; Power Liftgate; Backup Camera; Apple CarPlay",photos:["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=80"],status:"listed"},
-    {stock:"4041",vin:"1FTEW1EP5KFA12345",year:"2019",make:"Ford",model:"F-150",trim:"XLT",type:"Truck",body:"Crew Cab",mileage:"61,200",color:"Oxford White",engine:"5.0L V8",transmission:"Automatic",drivetrain:"4WD",fuel:"Gas",price:32900,features:"SYNC 3; Backup Camera; Trailer Tow Package; Bed Liner; Running Boards",photos:["https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&q=80"],status:"listed"},
+function loadDemo(){
+  allVehicles=[
+    {stock:"4010",vin:"5FNYF3H54FB013251",year:"2015",make:"Honda",model:"Pilot",trim:"EXL",type:"SUV",body:"4DR",mileage:"87,432",color:"Silver",engine:"3.5L V6",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:16995,features:"Air Conditioning; Power Windows; Power Locks; Keyless Entry; Backup Camera; Bluetooth",photos:["https://images.unsplash.com/photo-1606611013016-969c19ba27a6?w=600&q=80","https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=80","https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80"],status:"listed"},
+    {stock:"4022",vin:"1HGBH41JXMN109186",year:"2020",make:"Toyota",model:"Camry",trim:"SE",type:"Sedan",body:"4DR",mileage:"42,108",color:"Midnight Black",engine:"2.5L 4-Cyl",transmission:"Automatic",drivetrain:"FWD",fuel:"Gas",price:22495,features:"Apple CarPlay; Android Auto; Lane Departure Warning; Backup Camera; LED Headlights",photos:["https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600&q=80","https://images.unsplash.com/photo-1542362567-b07e54358753?w=600&q=80"],status:"listed"},
+    {stock:"4035",vin:"3GNAXHEV0KS624519",year:"2019",make:"Chevrolet",model:"Equinox",trim:"LT",type:"SUV",body:"4DR",mileage:"55,900",color:"Summit White",engine:"1.5L Turbo",transmission:"Automatic",drivetrain:"AWD",fuel:"Gas",price:18750,features:"Heated Seats; Remote Start; Power Liftgate; Backup Camera; Apple CarPlay",photos:["https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=600&q=80","https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80","https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80","https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80"],status:"listed"},
+    {stock:"4041",vin:"1FTEW1EP5KFA12345",year:"2019",make:"Ford",model:"F-150",trim:"XLT",type:"Truck",body:"Crew Cab",mileage:"61,200",color:"Oxford White",engine:"5.0L V8",transmission:"Automatic",drivetrain:"4WD",fuel:"Gas",price:32900,features:"SYNC 3; Backup Camera; Trailer Tow Package; Bed Liner; Running Boards",photos:["https://images.unsplash.com/photo-1590362891991-f776e747a588?w=600&q=80","https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80"],status:"listed"},
     {stock:"4055",vin:"WBAPH5C55BA272862",year:"2018",make:"BMW",model:"3 Series",trim:"330i",type:"Sedan",body:"4DR",mileage:"48,750",color:"Alpine White",engine:"2.0L Turbo",transmission:"Automatic",drivetrain:"RWD",fuel:"Gas",price:24500,features:"Navigation; Sunroof; Leather Seats; Heated Seats; Parking Sensors",photos:["https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"],status:"listed"},
-    {stock:"4060",vin:"5YJ3E1EA8LF123456",year:"2021",make:"Nissan",model:"Altima",trim:"SV",type:"Sedan",body:"4DR",mileage:"33,400",color:"Gun Metallic",engine:"2.5L 4-Cyl",transmission:"CVT",drivetrain:"FWD",fuel:"Gas",price:20995,features:"ProPilot Assist; Blind Spot Warning; Apple CarPlay; Android Auto",photos:["https://images.unsplash.com/photo-1549317661-bd32c8ce0220?w=600&q=80"],status:"listed"}
+    {stock:"4060",vin:"5YJ3E1EA8LF123456",year:"2021",make:"Nissan",model:"Altima",trim:"SV",type:"Sedan",body:"4DR",mileage:"33,400",color:"Gun Metallic",engine:"2.5L 4-Cyl",transmission:"CVT",drivetrain:"FWD",fuel:"Gas",price:20995,features:"ProPilot Assist; Blind Spot Warning; Apple CarPlay; Android Auto",photos:["https://images.unsplash.com/photo-1549317661-bd32c8ce0220?w=600&q=80","https://images.unsplash.com/photo-1502877338535-766e1452684a?w=600&q=80","https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&q=80"],status:"listed"}
   ];
   done();
 }
 
 function done(){document.getElementById('loadingState').style.display='none';populateFilters();applyFilters();updateStats();}
-function updateStats(){
-  const l=allVehicles.filter(v=>v.status==='listed');
-  document.getElementById('statTotal').textContent=l.length;
-  const p=l.filter(v=>v.price>0).map(v=>v.price);
-  document.getElementById('statFrom').textContent=p.length?'$'+Math.min(...p).toLocaleString():'—';
-}
-function populateFilters(){
-  const l=allVehicles.filter(v=>v.status==='listed');
-  fill('filterMake',[...new Set(l.map(v=>v.make).filter(Boolean))].sort(),'All Makes');
-  fill('filterType',[...new Set(l.map(v=>v.type).filter(Boolean))].sort(),'All Types');
-}
+function updateStats(){const l=allVehicles.filter(v=>v.status==='listed');document.getElementById('statTotal').textContent=l.length;const p=l.filter(v=>v.price>0).map(v=>v.price);document.getElementById('statFrom').textContent=p.length?'$'+Math.min(...p).toLocaleString():'—';}
+function populateFilters(){const l=allVehicles.filter(v=>v.status==='listed');fill('filterMake',[...new Set(l.map(v=>v.make).filter(Boolean))].sort(),'All Makes');fill('filterType',[...new Set(l.map(v=>v.type).filter(Boolean))].sort(),'All Types');}
 function fill(id,opts,ph){const s=document.getElementById(id);const v=s.value;s.innerHTML=`<option value="">${ph}</option>`+opts.map(o=>`<option value="${o}">${o}</option>`).join('');s.value=v;}
-function applyFilters(){
-  const q=document.getElementById('searchInput').value.toLowerCase();
-  const m=document.getElementById('filterMake').value;
-  const t=document.getElementById('filterType').value;
-  const pr=document.getElementById('filterPrice').value;
-  filtered=allVehicles.filter(v=>{
-    if(v.status!=='listed')return false;
-    if(q&&!`${v.year} ${v.make} ${v.model} ${v.trim} ${v.vin} ${v.color}`.toLowerCase().includes(q))return false;
-    if(m&&v.make!==m)return false;
-    if(t&&v.type!==t)return false;
-    if(pr){const[lo,hi]=pr.split('-').map(Number);if(v.price<lo||v.price>hi)return false;}
-    return true;
-  });
-  document.getElementById('resultCount').textContent=filtered.length;
-  renderGrid();
-}
-function resetFilters(){['searchInput'].forEach(id=>document.getElementById(id).value='');['filterMake','filterType','filterPrice'].forEach(id=>document.getElementById(id).value='');applyFilters();}
+function applyFilters(){const q=document.getElementById('searchInput').value.toLowerCase();const m=document.getElementById('filterMake').value;const t=document.getElementById('filterType').value;const pr=document.getElementById('filterPrice').value;filtered=allVehicles.filter(v=>{if(v.status!=='listed')return false;if(q&&!`${v.year} ${v.make} ${v.model} ${v.trim} ${v.vin} ${v.color}`.toLowerCase().includes(q))return false;if(m&&v.make!==m)return false;if(t&&v.type!==t)return false;if(pr){const[lo,hi]=pr.split('-').map(Number);if(v.price<lo||v.price>hi)return false;}return true;});document.getElementById('resultCount').textContent=filtered.length;renderGrid();}
+function resetFilters(){document.getElementById('searchInput').value='';['filterMake','filterType','filterPrice'].forEach(id=>document.getElementById(id).value='');applyFilters();}
 
+// ═══════ TOUCH SLIDER ENGINE ═══════
+class TouchSlider{
+  constructor(container,opts={}){
+    this.container=container;this.slidesEl=container.querySelector('.slides');this.idx=0;this.total=container.querySelectorAll('.slide').length;this.onSlide=opts.onSlide||(()=>{});this.threshold=opts.threshold||50;this.startX=0;this.startY=0;this.dx=0;this.locked=false;this.mouseDown=false;this.horizontal=false;
+    this.slidesEl.addEventListener('touchstart',e=>this.onStart(e.touches[0].clientX,e.touches[0].clientY),{passive:true});
+    this.slidesEl.addEventListener('touchmove',e=>this.onMove(e,e.touches[0].clientX,e.touches[0].clientY),{passive:false});
+    this.slidesEl.addEventListener('touchend',()=>this.onEnd());
+    this.slidesEl.addEventListener('mousedown',e=>{e.preventDefault();this.mouseDown=true;this.onStart(e.clientX,e.clientY);});
+    this._mm=e=>{if(this.mouseDown)this.onMove(e,e.clientX,e.clientY);};
+    this._mu=()=>{if(this.mouseDown){this.mouseDown=false;this.onEnd();}};
+    window.addEventListener('mousemove',this._mm);window.addEventListener('mouseup',this._mu);
+    this.update();
+  }
+  onStart(x,y){this.startX=x;this.startY=y;this.dx=0;this.locked=false;this.slidesEl.classList.add('dragging');}
+  onMove(e,x,y){const dx=x-this.startX;const dy=y-this.startY;if(!this.locked){if(Math.abs(dx)>8||Math.abs(dy)>8){this.locked=true;this.horizontal=Math.abs(dx)>Math.abs(dy);}return;}if(!this.horizontal)return;e.preventDefault();this.dx=dx;const offset=-(this.idx*100)+(this.dx/this.container.offsetWidth)*100;this.slidesEl.style.transform=`translateX(${offset}%)`;}
+  onEnd(){this.slidesEl.classList.remove('dragging');if(Math.abs(this.dx)>this.threshold){if(this.dx<0&&this.idx<this.total-1)this.idx++;else if(this.dx>0&&this.idx>0)this.idx--;}this.dx=0;this.update();this.onSlide(this.idx);}
+  goto(i){this.idx=Math.max(0,Math.min(i,this.total-1));this.update();this.onSlide(this.idx);}
+  nav(dir){this.goto(this.idx+dir);}
+  update(){this.slidesEl.style.transform=`translateX(${-this.idx*100}%)`;}
+  destroy(){window.removeEventListener('mousemove',this._mm);window.removeEventListener('mouseup',this._mu);}
+}
+
+// ═══════ CARD RENDERING ═══════
+let cardSliders={};
 function renderGrid(){
   const g=document.getElementById('vehicleGrid'),e=document.getElementById('emptyState');
+  Object.values(cardSliders).forEach(s=>s.destroy());cardSliders={};
   if(!filtered.length){g.innerHTML='';e.style.display='block';return;}
   e.style.display='none';
   g.innerHTML=filtered.map((v,i)=>{
-    const hp=v.photos&&v.photos.length>0;
-    const gi=allVehicles.indexOf(v);
-    return `<div class="v-card" style="animation-delay:${i*0.06}s" onclick="openModal(${gi})">
-      <div class="v-card-img">
-        ${hp?`<img src="${v.photos[0]}" alt="${v.year} ${v.make} ${v.model}" loading="lazy">`:`<div class="no-photo">No Photo</div>`}
-        ${v.type?`<span class="v-badge">${v.type}</span>`:''}
-        ${hp&&v.photos.length>1?`<span class="v-photo-count">${v.photos.length} photos</span>`:''}
-      </div>
+    const hp=v.photos&&v.photos.length>0;const gi=allVehicles.indexOf(v);const sliderId='cs_'+gi;
+    const slides=hp?v.photos.map(p=>`<div class="slide"><img src="${p}" alt="${v.year} ${v.make} ${v.model}" loading="lazy"></div>`).join(''):`<div class="slide"><div class="no-photo">No Photo</div></div>`;
+    const dots=hp&&v.photos.length>1?`<div class="slider-dots">${v.photos.map((_,j)=>`<button class="${j===0?'active':''}" onclick="event.stopPropagation();cardSliderGoto(${gi},${j})"></button>`).join('')}</div>`:'';
+    const arrows=hp&&v.photos.length>1?`<button class="slider-arrow prev" onclick="event.stopPropagation();cardSliderNav(${gi},-1)">&#8249;</button><button class="slider-arrow next" onclick="event.stopPropagation();cardSliderNav(${gi},1)">&#8250;</button>`:'';
+    const count=hp&&v.photos.length>1?`<span class="photo-count">${v.photos.length} photos</span>`:'';
+    return`<div class="v-card" style="animation-delay:${i*0.06}s" onclick="openModal(${gi})">
+      <div class="card-slider" id="${sliderId}">${v.type?`<span class="v-badge">${v.type}</span>`:''}<div class="slides">${slides}</div>${arrows}${dots}${count}</div>
       <div class="v-card-body">
         <div class="v-card-ymm">${v.year} ${v.make} ${v.model}</div>
         <div class="v-card-trim">${[v.trim,v.drivetrain,v.mileage?v.mileage+' mi':''].filter(Boolean).join(' · ')}</div>
-        <div class="v-card-specs">
-          ${v.engine?`<span class="v-chip">${v.engine}</span>`:''}
-          ${v.transmission?`<span class="v-chip">${v.transmission}</span>`:''}
-          ${v.fuel?`<span class="v-chip">${v.fuel}</span>`:''}
-        </div>
+        <div class="v-card-specs">${v.engine?`<span class="v-chip">${v.engine}</span>`:''}${v.transmission?`<span class="v-chip">${v.transmission}</span>`:''}${v.fuel?`<span class="v-chip">${v.fuel}</span>`:''}</div>
         <div class="v-card-divider"></div>
         <div class="v-card-bottom">
           ${v.price>0?`<div><div class="v-card-price">$${v.price.toLocaleString()}</div><div class="v-card-price-sub">+ tax & fees</div></div>`:`<div class="v-card-call">Call for Price</div>`}
@@ -346,46 +315,43 @@ function renderGrid(){
       </div>
     </div>`;
   }).join('');
+  filtered.forEach(v=>{if(v.photos&&v.photos.length>1){const gi=allVehicles.indexOf(v);const el=document.getElementById('cs_'+gi);if(el)cardSliders[gi]=new TouchSlider(el,{onSlide:idx=>updateCardDots(gi,idx)});}});
 }
+function updateCardDots(gi,idx){const el=document.getElementById('cs_'+gi);if(!el)return;el.querySelectorAll('.slider-dots button').forEach((d,i)=>d.classList.toggle('active',i===idx));}
+function cardSliderNav(gi,dir){if(cardSliders[gi])cardSliders[gi].nav(dir);}
+function cardSliderGoto(gi,idx){if(cardSliders[gi])cardSliders[gi].goto(idx);}
 
 // ═══════ MODAL ═══════
+let modalSliderInst=null;
 function openModal(idx){
-  const v=allVehicles[idx];if(!v)return;
-  modalPhotos=v.photos||[];modalIdx=0;
-  const o=document.getElementById('modalOverlay'),img=document.getElementById('modalImg'),d=document.getElementById('modalDots'),b=document.getElementById('modalBody');
-  if(modalPhotos.length){img.src=modalPhotos[0];img.style.display='block';document.querySelector('.modal-gallery').style.display='block';}
-  else{document.querySelector('.modal-gallery').style.display='none';}
-  d.innerHTML=modalPhotos.map((_,i)=>`<button class="${i===0?'active':''}" onclick="gotoSlide(${i})"></button>`).join('');
+  const v=allVehicles[idx];if(!v)return;const photos=v.photos||[];
+  const o=document.getElementById('modalOverlay'),sliderEl=document.getElementById('modalSlider'),slidesEl=document.getElementById('modalSlides'),dotsEl=document.getElementById('modalDots'),thumbsEl=document.getElementById('modalThumbs'),counterEl=document.getElementById('modalCounter'),body=document.getElementById('modalBody');
+  if(modalSliderInst){modalSliderInst.destroy();modalSliderInst=null;}
+  if(photos.length){
+    sliderEl.style.display='block';
+    slidesEl.innerHTML=photos.map(p=>`<div class="slide"><img src="${p}" alt="${v.year} ${v.make} ${v.model}"></div>`).join('');
+    dotsEl.innerHTML=photos.length>1?photos.map((_,i)=>`<button class="${i===0?'active':''}" onclick="modalGoto(${i})"></button>`).join(''):'';
+    counterEl.textContent=`1 / ${photos.length}`;counterEl.style.display=photos.length>1?'block':'none';
+    if(photos.length>1){thumbsEl.style.display='flex';thumbsEl.innerHTML=photos.map((p,i)=>`<button class="${i===0?'active':''}" onclick="modalGoto(${i})"><img src="${p}" alt=""></button>`).join('');}
+    else{thumbsEl.style.display='none';}
+    setTimeout(()=>{modalSliderInst=new TouchSlider(sliderEl,{onSlide:idx=>updateModalSlide(idx,photos.length)});},50);
+  }else{sliderEl.style.display='none';thumbsEl.style.display='none';}
   const feats=v.features?v.features.split(/[;,]/).map(f=>f.trim()).filter(Boolean):[];
   const specs=[['Mileage',v.mileage?v.mileage+' mi':'—'],['Engine',v.engine||'—'],['Transmission',v.transmission||'—'],['Drivetrain',v.drivetrain||'—'],['Fuel',v.fuel||'—'],['Exterior',v.color||'—'],['Body',v.body||'—'],['Stock #',v.stock||'—']];
-  const phoneLink=PHONE?`<a href="tel:${PHONE}" class="btn-outline" style="text-decoration:none;text-align:center;">Call ${PHONE}</a>`:'';
-  b.innerHTML=`<h2>${v.year} ${v.make} ${v.model}</h2>
-    <div class="modal-meta">${[v.trim,'VIN: '+v.vin].filter(Boolean).join(' · ')}</div>
-    <div class="modal-price-row"><div class="modal-price">${v.price>0?'$'+v.price.toLocaleString():'Call for Price'}</div></div>
-    <div class="modal-specs">${specs.map(([l,val])=>`<div class="modal-spec-item"><div class="label">${l}</div><div class="value">${val}</div></div>`).join('')}</div>
-    ${feats.length?`<div class="modal-features-section"><h3>Features & Equipment</h3><div class="modal-features-list">${feats.map(f=>`<span class="modal-feat">${f}</span>`).join('')}</div></div>`:''}
-    <div class="modal-cta-row">
-      <button class="btn-primary" onclick="inquire('${v.year} ${v.make} ${v.model}')">${CTA_TEXT}</button>
-      ${phoneLink}
-      <button class="btn-outline" onclick="closeModal()">Back to Inventory</button>
-    </div>`;
+  const phoneLink=PHONE?`<a href="tel:${PHONE}" class="btn-outline">Call ${PHONE}</a>`:'';
+  body.innerHTML=`<h2>${v.year} ${v.make} ${v.model}</h2><div class="modal-meta">${[v.trim,'VIN: '+v.vin].filter(Boolean).join(' · ')}</div><div class="modal-price-row"><div class="modal-price">${v.price>0?'$'+v.price.toLocaleString():'Call for Price'}</div></div><div class="modal-specs">${specs.map(([l,val])=>`<div class="modal-spec-item"><div class="label">${l}</div><div class="value">${val}</div></div>`).join('')}</div>${feats.length?`<div class="modal-features-section"><h3>Features & Equipment</h3><div class="modal-features-list">${feats.map(f=>`<span class="modal-feat">${f}</span>`).join('')}</div></div>`:''}<div class="modal-cta-row"><button class="btn-primary" onclick="inquire('${v.year} ${v.make} ${v.model}')">${CTA_TEXT}</button>${phoneLink}<button class="btn-outline" onclick="closeModal()">Back to Inventory</button></div>`;
   o.classList.add('open');document.body.style.overflow='hidden';
 }
-function closeModal(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';}
-function navGallery(d){if(!modalPhotos.length)return;modalIdx=(modalIdx+d+modalPhotos.length)%modalPhotos.length;updSlide();}
-function gotoSlide(i){modalIdx=i;updSlide();}
-function updSlide(){document.getElementById('modalImg').src=modalPhotos[modalIdx];document.querySelectorAll('#modalDots button').forEach((d,i)=>d.classList.toggle('active',i===modalIdx));}
-function inquire(name){
-  if(window.parent!==window){window.parent.postMessage({type:'vehicle-inquiry',vehicle:name},'*');}
-  if(PHONE){if(confirm('Call about the '+name+'?'))window.location.href='tel:'+PHONE;}
-  else alert('Thank you for your interest in the '+name+'! Please use the contact form on this page.');
-}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='ArrowLeft')navGallery(-1);if(e.key==='ArrowRight')navGallery(1);});
+function updateModalSlide(idx,total){document.getElementById('modalCounter').textContent=`${idx+1} / ${total}`;document.querySelectorAll('#modalDots button').forEach((d,i)=>d.classList.toggle('active',i===idx));document.querySelectorAll('#modalThumbs button').forEach((d,i)=>{d.classList.toggle('active',i===idx);if(i===idx)d.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});});}
+function modalNav(dir){if(modalSliderInst)modalSliderInst.nav(dir);}
+function modalGoto(i){if(modalSliderInst)modalSliderInst.goto(i);}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';if(modalSliderInst){modalSliderInst.destroy();modalSliderInst=null;}}
+function inquire(name){if(window.parent!==window)window.parent.postMessage({type:'vehicle-inquiry',vehicle:name},'*');if(PHONE){if(confirm('Call about the '+name+'?'))window.location.href='tel:'+PHONE;}else alert('Thank you for your interest in the '+name+'! Please use the contact form on this page.');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='ArrowLeft'&&modalSliderInst)modalSliderInst.nav(-1);if(e.key==='ArrowRight'&&modalSliderInst)modalSliderInst.nav(1);});
 
 // ═══════ CSV PARSER ═══════
 function parseCSV(t){const rows=[];let c=[],f='',q=false;for(let i=0;i<t.length;i++){const ch=t[i],n=t[i+1];if(q){if(ch==='"'&&n==='"'){f+='"';i++;}else if(ch==='"')q=false;else f+=ch;}else{if(ch==='"')q=true;else if(ch===','){c.push(f);f='';}else if(ch==='\n'||(ch==='\r'&&n==='\n')){c.push(f);f='';if(c.some(x=>x.trim()))rows.push(c);c=[];if(ch==='\r')i++;}else f+=ch;}}c.push(f);if(c.some(x=>x.trim()))rows.push(c);return rows;}
 
-// ═══════ INIT ═══════
 document.addEventListener('DOMContentLoaded',loadInventory);
 </script>
 </body>
