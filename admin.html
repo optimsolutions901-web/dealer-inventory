@@ -181,8 +181,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 
 <!-- SETUP BANNER — shows when no API URL configured -->
 <div class="setup-banner" id="setupBanner">
-  <h3>⚡ Connect to Google Sheet</h3>
-  <p style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.5rem;">Paste your Google Apps Script Web App URL to connect the admin tool to your inventory sheet.</p>
+  <h3>⚡ Connect to Database</h3>
+  <p style="font-size:0.78rem;color:var(--text-2);margin-bottom:0.5rem;">Paste your API URL to connect the admin tool to your inventory database.</p>
   <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/AKfy.../exec">
   <button class="btn btn-primary btn-sm" onclick="saveApiUrl()">Connect</button>
 </div>
@@ -315,6 +315,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
       <button class="btn btn-primary btn-sm" onclick="shareLink()">Share</button>
       <button class="btn btn-outline btn-sm" onclick="closeQR()">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- EDIT LISTING MODAL -->
+<div class="qr-modal" id="editModal" onclick="if(event.target===this)closeEditModal()">
+  <div class="qr-box" style="max-width:500px;max-height:90vh;overflow-y:auto;text-align:left;">
+    <div id="editModalBody"></div>
   </div>
 </div>
 
@@ -493,7 +500,7 @@ async function parsePDF(file) {
             method: 'POST', headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ action: 'add_to_queue', vehicle: vehicle })
           });
-        } catch(e) { console.error('Failed to save to sheet', e); }
+        } catch(e) { console.error('Failed to save to database', e); }
       }
       vehicleQueue.push(vehicle);
       renderAll();
@@ -534,7 +541,7 @@ async function parseCSVFile(file) {
           method: 'POST', headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ action: 'add_to_queue', vehicle: v })
         });
-      } catch(e) { console.error('Failed to save vehicle to sheet', e); }
+      } catch(e) { console.error('Failed to save vehicle to database', e); }
     }
     vehicleQueue.push(v);
     added++;
@@ -652,7 +659,7 @@ async function addManualVehicle() {
   // Save to Google Sheet
   if (API_URL) {
     try {
-      toast('Saving to sheet...', '');
+      toast('Saving to database...', '');
       const response = await fetch(API_URL, {
         method: 'POST', headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ action: 'add_to_queue', vehicle: v })
@@ -909,7 +916,7 @@ async function publishFromQueue(idx) {
   const v = vehicleQueue[idx];
 
   if (!API_URL) {
-    toast('Connect to Google Sheet first (see setup banner)', 'error');
+    toast('Connect to database first (see setup banner)', 'error');
     document.getElementById('setupBanner').style.display = 'block';
     switchTab('upload');
     return;
@@ -935,7 +942,7 @@ async function publishFromQueue(idx) {
       photos: v.photos || []
     };
 
-    statusEl.textContent = 'Saving to Google Sheet...';
+    statusEl.textContent = 'Saving to database...';
 
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -946,7 +953,7 @@ async function publishFromQueue(idx) {
     const result = await response.json();
 
     if (result.success) {
-      // Remove from local queue — listings now come from Google Sheet
+      // Remove from local queue — listings now come from database
       vehicleQueue.splice(idx, 1);
       saveState();
       renderAll();
@@ -980,7 +987,7 @@ function renderListings() {
   const container = document.getElementById('listingsContainer');
   
   if (!API_URL) {
-    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>Connect to Google Sheet to see listings</p></div>';
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>Connect to database to see listings</p></div>';
     return;
   }
 
@@ -998,11 +1005,13 @@ function renderListings() {
         container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles published yet</p></div>';
         return;
       }
-      container.innerHTML = vehicles.map(v => {
+      // Store for editing
+      window._listedVehicles = vehicles;
+      container.innerHTML = vehicles.map((v, i) => {
         const photos = v['Photos'] ? v['Photos'].split(',').map(u => u.trim()).filter(Boolean) : [];
         const thumb = photos.length > 0 ? photos[0] : '';
         const price = parseFloat(String(v['Price']).replace(/[$,]/g, '')) || 0;
-        return `<div class="listing-row">
+        return `<div class="listing-row" style="cursor:pointer;" onclick="openEditListing(${i})">
           <div class="lr-thumb">${thumb ? `<img src="${thumb}" alt="">` : ''}</div>
           <div class="lr-info"><div class="lr-ymm">${v['Year']} ${v['Make']} ${v['Model']}</div><div class="lr-meta">${photos.length} photos · Stock #${v['Stock#'] || '—'}</div></div>
           <div class="lr-price">${price > 0 ? '$' + price.toLocaleString() : '—'}</div>
@@ -1014,6 +1023,98 @@ function renderListings() {
       console.error(err);
       container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>Could not load listings</p></div>';
     });
+}
+
+function openEditListing(idx) {
+  const v = window._listedVehicles[idx];
+  if (!v) return;
+  const photos = v['Photos'] ? v['Photos'].split(',').map(u => u.trim()).filter(Boolean) : [];
+  const price = parseFloat(String(v['Price']).replace(/[$,]/g, '')) || 0;
+  const stock = v['Stock#'] || '';
+  const vin = v['VIN'] || '';
+
+  const modal = document.getElementById('editModal');
+  document.getElementById('editModalBody').innerHTML = `
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">${v['Year']} ${v['Make']} ${v['Model']} ${v['Trim'] || ''}</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Year</label><input id="eYear" value="${v['Year'] || ''}"></div>
+      <div class="form-group"><label>Make</label><input id="eMake" value="${v['Make'] || ''}"></div>
+      <div class="form-group"><label>Model</label><input id="eModel" value="${v['Model'] || ''}"></div>
+      <div class="form-group"><label>Trim</label><input id="eTrim" value="${v['Trim'] || ''}"></div>
+      <div class="form-group"><label>Stock #</label><input id="eStock" value="${stock}" readonly style="opacity:0.6;"></div>
+      <div class="form-group"><label>VIN</label><input id="eVin" value="${vin}"></div>
+      <div class="form-group"><label>Mileage</label><input id="eMileage" value="${v['Mileage'] || ''}"></div>
+      <div class="form-group"><label>Price</label><input id="ePrice" value="${price}"></div>
+      <div class="form-group"><label>Color</label><input id="eColor" value="${v['Color'] || ''}"></div>
+      <div class="form-group"><label>Type</label><input id="eType" value="${v['Type'] || ''}"></div>
+      <div class="form-group"><label>Engine</label><input id="eEngine" value="${v['Engine'] || ''}"></div>
+      <div class="form-group"><label>Transmission</label><input id="eTrans" value="${v['Transmission'] || ''}"></div>
+      <div class="form-group"><label>Drivetrain</label><input id="eDrive" value="${v['Drivetrain'] || ''}"></div>
+      <div class="form-group"><label>Fuel</label><input id="eFuel" value="${v['Fuel'] || ''}"></div>
+      <div class="form-group full"><label>Features</label><input id="eFeatures" value="${v['Features'] || ''}"></div>
+    </div>
+    <div class="section-title" style="margin-top:1rem;">Photos (${photos.length})</div>
+    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;margin-bottom:1rem;">
+      ${photos.map(p => `<div style="width:70px;height:52px;border-radius:4px;overflow:hidden;border:1px solid var(--border);"><img src="${p}" style="width:100%;height:100%;object-fit:cover;"></div>`).join('')}
+      ${photos.length === 0 ? '<span style="color:var(--text-3);font-size:0.8rem;">No photos</span>' : ''}
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="saveEditListing('${stock}','${vin}')">Save Changes</button>
+      <button class="btn btn-outline btn-sm" onclick="moveToQueue('${stock}','${vin}')">Move to Queue (Re-photograph)</button>
+      <button class="btn btn-danger btn-sm" onclick="markAsSold('${stock}','${vin}')">Mark as Sold</button>
+      <button class="btn btn-outline btn-sm" onclick="closeEditModal()">Cancel</button>
+    </div>
+  `;
+  modal.classList.add('open');
+}
+
+function closeEditModal() { document.getElementById('editModal').classList.remove('open'); }
+
+async function saveEditListing(stock, vin) {
+  const vehicle = {
+    stock, vin: document.getElementById('eVin').value,
+    year: document.getElementById('eYear').value, make: document.getElementById('eMake').value,
+    model: document.getElementById('eModel').value, trim: document.getElementById('eTrim').value,
+    type: document.getElementById('eType').value, body: '',
+    mileage: document.getElementById('eMileage').value, color: document.getElementById('eColor').value,
+    engine: document.getElementById('eEngine').value, transmission: document.getElementById('eTrans').value,
+    drivetrain: document.getElementById('eDrive').value, fuel: document.getElementById('eFuel').value,
+    price: parseFloat(document.getElementById('ePrice').value.replace(/[$,]/g, '')) || 0,
+    features: document.getElementById('eFeatures').value, status: 'listed'
+  };
+  try {
+    toast('Saving changes...', '');
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'update', vehicle, photos: [] }) });
+    const result = await r.json();
+    if (result.success) { toast('Updated!', 'success'); closeEditModal(); renderListings(); }
+    else toast('Error: ' + (result.error || ''), 'error');
+  } catch(e) { toast('Network error', 'error'); }
+}
+
+async function markAsSold(stock, vin) {
+  if (!confirm('Mark this vehicle as sold? It will be removed from the website.')) return;
+  try {
+    toast('Updating...', '');
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'remove', stock, vin }) });
+    const result = await r.json();
+    if (result.success) { toast('Marked as sold', 'success'); closeEditModal(); renderListings(); }
+    else toast('Error: ' + (result.error || ''), 'error');
+  } catch(e) { toast('Network error', 'error'); }
+}
+
+async function moveToQueue(stock, vin) {
+  if (!confirm('Move back to queue? This will remove it from the website until re-published.')) return;
+  try {
+    toast('Moving to queue...', '');
+    const vehicle = { stock, vin, status: 'queue' };
+    const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'update', vehicle, photos: [] }) });
+    const result = await r.json();
+    if (result.success) { toast('Moved to queue', 'success'); closeEditModal(); loadFromSheet(); switchTab('queue'); }
+    else toast('Error: ' + (result.error || ''), 'error');
+  } catch(e) { toast('Network error', 'error'); }
 }
 
 // ═══════════════════════════════════════════════════
