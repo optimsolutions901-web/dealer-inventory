@@ -329,12 +329,12 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 document.getElementById('deviceBadge').textContent = isMobile ? 'Mobile' : 'Desktop';
 
 // API URL stored in localStorage
-const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzVcyLTJiwLgFwwTmutTdRRRofQYFEVz-GfNA1dkobJtFU9RjZpSusymK-xoSVqxtKWkw/exec';
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzbjCPHWDXFMKpmFCyWIiJ3nXF1gD2dMO_jfOyEcZttN_8Kz4LpgrpKPGcU6hhbX-pMhQ/exec';
 let API_URL = localStorage.getItem('lotmanager_api_url') || DEFAULT_API;
 
-// Local state
-let vehicleQueue = JSON.parse(localStorage.getItem('lotmanager_queue') || '[]');
-let published = JSON.parse(localStorage.getItem('lotmanager_published') || '[]');
+// Local state — loaded from Google Sheet, NOT localStorage
+let vehicleQueue = [];
+let published = [];
 
 // Photo capture state
 let currentPhotoVehicle = null;
@@ -356,13 +356,44 @@ const PHOTO_SLOTS = [
 // ═══════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   checkConnection();
-  renderAll();
+  loadFromSheet();
   checkIOSBanner();
   checkVehicleParam();
-
-  // Default to photos tab on mobile
   if (isMobile) switchTab('photos');
 });
+
+// Load all vehicles from Google Sheet
+function loadFromSheet() {
+  if (!API_URL) { renderAll(); return; }
+  fetch(API_URL + '?action=list', { method: 'GET' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.vehicles) {
+        vehicleQueue = data.vehicles
+          .filter(v => (v['Status'] || '').toLowerCase() === 'queue')
+          .map(sheetRowToVehicle);
+        renderAll();
+      }
+    })
+    .catch(err => { console.error('Failed to load from sheet:', err); renderAll(); });
+}
+
+// Convert a Sheet row object to our vehicle format
+function sheetRowToVehicle(row) {
+  return {
+    id: (row['Stock#'] || Date.now()) + '-sheet',
+    stock: row['Stock#'] || '', vin: row['VIN'] || '',
+    year: String(row['Year'] || ''), make: row['Make'] || '', model: row['Model'] || '',
+    trim: row['Trim'] || '', type: row['Type'] || '', body: row['Body'] || '',
+    mileage: String(row['Mileage'] || ''), color: row['Color'] || '',
+    engine: row['Engine'] || '', transmission: row['Transmission'] || '',
+    drivetrain: row['Drivetrain'] || '', fuel: row['Fuel'] || '',
+    price: parseFloat(String(row['Price'] || '0').replace(/[$,]/g, '')) || 0,
+    features: row['Features'] || '',
+    photos: row['Photos'] ? row['Photos'].split(',').map(u => u.trim()).filter(Boolean) : [],
+    status: (row['Status'] || 'queue').toLowerCase()
+  };
+}
 
 function checkConnection() {
   const dot = document.getElementById('connDot');
@@ -407,8 +438,8 @@ function saveApiUrl() {
 }
 
 function saveState() {
-  localStorage.setItem('lotmanager_queue', JSON.stringify(vehicleQueue));
-  localStorage.setItem('lotmanager_published', JSON.stringify(published));
+  // No-op: vehicle data is stored in Google Sheet, not localStorage
+  // Only the queue during active photo capture session uses local state
 }
 
 function renderAll() {
@@ -455,8 +486,17 @@ async function parsePDF(file) {
     }
     const vehicle = parseFrazerText(text);
     if (vehicle.make) {
+      // Save to Google Sheet
+      if (API_URL) {
+        try {
+          await fetch(API_URL, {
+            method: 'POST', headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: 'add_to_queue', vehicle: vehicle })
+          });
+        } catch(e) { console.error('Failed to save to sheet', e); }
+      }
       vehicleQueue.push(vehicle);
-      saveState(); renderAll();
+      renderAll();
       toast(`Added: ${vehicle.year} ${vehicle.make} ${vehicle.model}`, 'success');
       switchTab('queue');
     } else {
@@ -476,7 +516,7 @@ async function parseCSVFile(file) {
     const get = (names) => { for (const name of names) { const idx = headers.indexOf(name); if (idx >= 0 && row[idx]) return row[idx].trim(); } return ''; };
     const make = get(['make']);
     if (!make) continue;
-    vehicleQueue.push({
+    const v = {
       id: Date.now() + '-' + i, stock: get(['stock #', 'stock', 'stock#', 'stk']),
       vin: get(['vin']), year: get(['year']), make, model: get(['model']),
       trim: get(['trim', 'style']), type: get(['type', 'vehicle type']),
@@ -485,11 +525,21 @@ async function parseCSVFile(file) {
       engine: get(['engine']), transmission: get(['transmission', 'trans']),
       drivetrain: get(['drivetrain']), fuel: get(['fuel', 'fuel type']),
       price: parseFloat(get(['price', 'retail price', 'internet price']).replace(/[$,]/g, '')) || 0,
-      features: get(['features', 'options']), photos: [], status: 'needs-photos'
-    });
+      features: get(['features', 'options']), photos: [], status: 'queue'
+    };
+    // Save to Sheet
+    if (API_URL) {
+      try {
+        await fetch(API_URL, {
+          method: 'POST', headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'add_to_queue', vehicle: v })
+        });
+      } catch(e) { console.error('Failed to save vehicle to sheet', e); }
+    }
+    vehicleQueue.push(v);
     added++;
   }
-  saveState(); renderAll();
+  renderAll();
   toast(`Imported ${added} vehicle${added !== 1 ? 's' : ''}`, 'success');
   if (added) switchTab('queue');
 }
@@ -584,7 +634,7 @@ function showManualEntry() {
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }
 
-function addManualVehicle() {
+async function addManualVehicle() {
   const v = {
     id: Date.now() + '-manual', stock: document.getElementById('mStock').value,
     vin: document.getElementById('mVin').value, year: document.getElementById('mYear').value,
@@ -595,10 +645,26 @@ function addManualVehicle() {
     transmission: document.getElementById('mTrans').value, drivetrain: document.getElementById('mDrive').value,
     fuel: document.getElementById('mFuel').value,
     price: parseFloat(document.getElementById('mPrice').value.replace(/[$,]/g, '')) || 0,
-    features: document.getElementById('mFeatures').value, photos: [], status: 'needs-photos'
+    features: document.getElementById('mFeatures').value, photos: [], status: 'queue'
   };
   if (!v.make || !v.model) { toast('Make and Model required', 'error'); return; }
-  vehicleQueue.push(v); saveState(); renderAll();
+
+  // Save to Google Sheet
+  if (API_URL) {
+    try {
+      toast('Saving to sheet...', '');
+      const response = await fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'add_to_queue', vehicle: v })
+      });
+      const result = await response.json();
+      if (!result.success) { toast('Error saving: ' + (result.error || ''), 'error'); return; }
+    } catch(err) { toast('Network error saving vehicle', 'error'); return; }
+  }
+
+  // Add locally and refresh
+  vehicleQueue.push(v);
+  renderAll();
   toast(`Added: ${v.year} ${v.make} ${v.model}`, 'success');
   ['mYear', 'mMake', 'mModel', 'mTrim', 'mStock', 'mVin', 'mMileage', 'mPrice', 'mColor', 'mType', 'mEngine', 'mTrans', 'mDrive', 'mFuel', 'mFeatures']
     .forEach(id => document.getElementById(id).value = '');
@@ -691,22 +757,19 @@ function checkVehicleParam() {
       const json = decodeURIComponent(escape(atob(decodeURIComponent(vdata))));
       const v = JSON.parse(json);
       v.photos = [];
-      v.status = 'needs-photos';
-      // Check if this vehicle is already in queue (by id or stock#)
-      const existing = vehicleQueue.findIndex(q => q.id === v.id || (q.stock && q.stock === v.stock));
+      v.status = 'queue';
+      // Check if this vehicle is already in local queue (by stock#)
+      const existing = vehicleQueue.findIndex(q => q.stock && q.stock === v.stock);
       if (existing >= 0) {
-        // Already in queue, go straight to photos
         startPhotos(existing);
       } else {
-        // Add to queue and go to photos
+        // Add locally (it's already in the Sheet from desktop)
         vehicleQueue.push(v);
-        saveState();
         renderAll();
         const idx = vehicleQueue.length - 1;
         startPhotos(idx);
       }
       switchTab('photos');
-      // Clean URL
       window.history.replaceState({}, '', window.location.pathname);
       return;
     } catch(e) { console.error('Failed to parse vehicle data from URL', e); }
@@ -883,11 +946,7 @@ async function publishFromQueue(idx) {
     const result = await response.json();
 
     if (result.success) {
-      // Move to published list locally
-      v.status = 'listed';
-      v.publishedAt = new Date().toISOString();
-      if (result.photoUrls) v.drivePhotoUrls = result.photoUrls;
-      published.push(v);
+      // Remove from local queue — listings now come from Google Sheet
       vehicleQueue.splice(idx, 1);
       saveState();
       renderAll();
@@ -919,19 +978,42 @@ function publishVehicle() {
 // ═══════════════════════════════════════════════════
 function renderListings() {
   const container = document.getElementById('listingsContainer');
-  if (!published.length) {
-    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles published yet</p></div>';
+  
+  if (!API_URL) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>Connect to Google Sheet to see listings</p></div>';
     return;
   }
-  container.innerHTML = published.map((v, i) => {
-    const thumb = v.photos && v.photos.length > 0 ? v.photos[0] : '';
-    return `<div class="listing-row">
-      <div class="lr-thumb">${thumb ? `<img src="${thumb}" alt="">` : ''}</div>
-      <div class="lr-info"><div class="lr-ymm">${v.year} ${v.make} ${v.model}</div><div class="lr-meta">${v.photos ? v.photos.length : 0} photos · Stock #${v.stock || '—'}</div></div>
-      <div class="lr-price">${v.price > 0 ? '$' + v.price.toLocaleString() : '—'}</div>
-      <span class="lr-status listed">Live</span>
-    </div>`;
-  }).join('');
+
+  container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><div class="publish-overlay" style="display:flex;position:static;background:none;backdrop-filter:none;"><div class="spinner" style="width:24px;height:24px;border-width:2px;"></div></div><p style="margin-top:0.5rem;">Loading inventory...</p></div>';
+
+  fetch(API_URL + '?action=list', { method: 'GET' })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success || !data.vehicles || !data.vehicles.length) {
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles published yet</p></div>';
+        return;
+      }
+      const vehicles = data.vehicles.filter(v => (v['Status'] || '').toLowerCase() === 'listed');
+      if (!vehicles.length) {
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>No vehicles published yet</p></div>';
+        return;
+      }
+      container.innerHTML = vehicles.map(v => {
+        const photos = v['Photos'] ? v['Photos'].split(',').map(u => u.trim()).filter(Boolean) : [];
+        const thumb = photos.length > 0 ? photos[0] : '';
+        const price = parseFloat(String(v['Price']).replace(/[$,]/g, '')) || 0;
+        return `<div class="listing-row">
+          <div class="lr-thumb">${thumb ? `<img src="${thumb}" alt="">` : ''}</div>
+          <div class="lr-info"><div class="lr-ymm">${v['Year']} ${v['Make']} ${v['Model']}</div><div class="lr-meta">${photos.length} photos · Stock #${v['Stock#'] || '—'}</div></div>
+          <div class="lr-price">${price > 0 ? '$' + price.toLocaleString() : '—'}</div>
+          <span class="lr-status listed">Live</span>
+        </div>`;
+      }).join('');
+    })
+    .catch(err => {
+      console.error(err);
+      container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-3);"><p>Could not load listings</p></div>';
+    });
 }
 
 // ═══════════════════════════════════════════════════
