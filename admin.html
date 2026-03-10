@@ -649,15 +649,25 @@ function updateQueueBadge() {
 function removeFromQueue(idx) { vehicleQueue.splice(idx, 1); saveState(); renderAll(); }
 
 // ═══════════════════════════════════════════════════
-// QR CODE BRIDGE
+// QR CODE BRIDGE — encodes vehicle data in URL
+// Phone receives all vehicle info without needing localStorage
 // ═══════════════════════════════════════════════════
 function openQR(queueIdx) {
   const v = vehicleQueue[queueIdx];
-  const url = window.location.origin + window.location.pathname + '?vehicle=' + encodeURIComponent(v.id);
+  // Encode essential vehicle data into URL params
+  const vData = {
+    id: v.id, stock: v.stock, vin: v.vin, year: v.year, make: v.make,
+    model: v.model, trim: v.trim, type: v.type, body: v.body,
+    mileage: v.mileage, color: v.color, engine: v.engine,
+    transmission: v.transmission, drivetrain: v.drivetrain, fuel: v.fuel,
+    price: v.price, features: v.features
+  };
+  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(vData)))));
+  const url = window.location.origin + window.location.pathname + '?vdata=' + encoded;
   const container = document.getElementById('qrContainer');
   container.innerHTML = '';
   if (typeof QRCode !== 'undefined') {
-    new QRCode(container, { text: url, width: 180, height: 180, colorDark: '#0f1117', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+    new QRCode(container, { text: url, width: 180, height: 180, colorDark: '#0f1117', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.L });
   }
   document.getElementById('qrLink').textContent = url;
   document.getElementById('qrModal').classList.add('open');
@@ -673,6 +683,36 @@ function shareLink() { const link = document.getElementById('qrLink').textConten
 
 function checkVehicleParam() {
   const p = new URLSearchParams(window.location.search);
+
+  // New method: full vehicle data encoded in URL
+  const vdata = p.get('vdata');
+  if (vdata) {
+    try {
+      const json = decodeURIComponent(escape(atob(decodeURIComponent(vdata))));
+      const v = JSON.parse(json);
+      v.photos = [];
+      v.status = 'needs-photos';
+      // Check if this vehicle is already in queue (by id or stock#)
+      const existing = vehicleQueue.findIndex(q => q.id === v.id || (q.stock && q.stock === v.stock));
+      if (existing >= 0) {
+        // Already in queue, go straight to photos
+        startPhotos(existing);
+      } else {
+        // Add to queue and go to photos
+        vehicleQueue.push(v);
+        saveState();
+        renderAll();
+        const idx = vehicleQueue.length - 1;
+        startPhotos(idx);
+      }
+      switchTab('photos');
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname);
+      return;
+    } catch(e) { console.error('Failed to parse vehicle data from URL', e); }
+  }
+
+  // Legacy method: vehicle ID lookup in localStorage
   const vid = p.get('vehicle');
   if (vid) {
     const idx = vehicleQueue.findIndex(v => v.id === vid);
