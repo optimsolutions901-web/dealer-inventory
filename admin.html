@@ -329,7 +329,7 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 document.getElementById('deviceBadge').textContent = isMobile ? 'Mobile' : 'Desktop';
 
 // API URL stored in localStorage
-const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzbjCPHWDXFMKpmFCyWIiJ3nXF1gD2dMO_jfOyEcZttN_8Kz4LpgrpKPGcU6hhbX-pMhQ/exec';
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbyiMVNemGvCVBItbL91HUwrdvhRdql9M1ZZSVeh5DeLoFQntnKcx4FfF8H4icWSdUvBXg/exec';
 let API_URL = localStorage.getItem('lotmanager_api_url') || DEFAULT_API;
 
 // Local state — loaded from Google Sheet, NOT localStorage
