@@ -329,7 +329,8 @@ const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 document.getElementById('deviceBadge').textContent = isMobile ? 'Mobile' : 'Desktop';
 
 // API URL stored in localStorage
-let API_URL = localStorage.getItem('lotmanager_api_url') || '';
+const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbzVcyLTJiwLgFwwTmutTdRRRofQYFEVz-GfNA1dkobJtFU9RjZpSusymK-xoSVqxtKWkw/exec';
+let API_URL = localStorage.getItem('lotmanager_api_url') || DEFAULT_API;
 
 // Local state
 let vehicleQueue = JSON.parse(localStorage.getItem('lotmanager_queue') || '[]');
@@ -504,20 +505,74 @@ function csvToRows(text) {
 }
 
 function parseFrazerText(text) {
-  const get = (label) => { const rx = new RegExp(label + '\\s*[:.]\\s*([^\\n]+?)(?=\\s{2,}|\\n|$)', 'i'); const m = text.match(rx); return m ? m[1].trim() : ''; };
-  let yr = get('Year'); if (yr.length === 2) yr = '20' + yr;
+  // Frazer V-1-P PDF: pdf.js extracts as continuous text with "Label: Value" pairs
+  // Strategy: build a regex from ALL known Frazer labels to correctly delimit values
+  const KNOWN_LABELS = [
+    'Stock #','Stock#','VIN','Year','Make','Model','Style','Vehicle Type','Body Type',
+    'Engine','Cylinders','Tran Speed','Transmission','Drivetrain','Fuel Type',
+    'Primary Color','Secondary Color','Mileage Type','Mileage','Location',
+    'New/Used','Condition','Tag','Expiration','Decal #','County',
+    'Inspected\\?','Inspection #','Inspected By','Title In\\?','Title #',
+    'State Title In','Title Application #','Ignition Key Code','Door Key Code',
+    'Valet Key Code','Duplicate Keys','GPS Serial #',
+    'Purchase Date','Vehicle Source','Original Cost','Vendor',
+    'Buyers Fee','Buyer','Lot Fee','Notes','Added Costs',
+    'Draft\\?','Draft Check #','Floor Plan Cost','Draft Check Paid',
+    'Total Costs','Retail Price','Internet Price','Wholesale Price',
+    'Other Price/Cost','Down Payment','Upload Vehicle','Number of Photos',
+    'Name','Address','City','State','Zip','Phone','Primary Use'
+  ];
+
+  // Build a mega-regex that captures "Label: Value" stopping at the next known label
+  const labelAlt = KNOWN_LABELS.map(l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const megaRx = new RegExp('(' + labelAlt + ')\\s*:\\s*(.*?)(?=(?:' + labelAlt + ')\\s*:|Features\\b|$)', 'gi');
+
+  const fields = {};
+  let match;
+  while ((match = megaRx.exec(text)) !== null) {
+    const label = match[1].replace(/\\/, '').trim().toLowerCase();
+    const value = match[2].trim();
+    if (value && !fields[label]) fields[label] = value; // first match wins
+  }
+
+  const g = (names) => {
+    for (const n of names) { if (fields[n]) return fields[n]; }
+    return '';
+  };
+
   const tc = s => s ? s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '';
+
+  let yr = g(['year']);
+  if (yr.length === 2) yr = (parseInt(yr) > 50 ? '19' : '20') + yr;
+
+  // Features: everything after "Features" header until dashes or end
+  let features = '';
+  const featMatch = text.match(/Features[\s\-]+([\s\S]*?)(?=\s*-{3,}\s*$|\s*$)/i);
+  if (featMatch) {
+    // Clean: remove any "Label: Value" pairs that leaked in
+    features = featMatch[1].replace(new RegExp('(' + labelAlt + ')\\s*:.*', 'gi'), '').replace(/\s+/g, ' ').trim();
+  }
+
   return {
     id: Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-    stock: get('Stock #') || get('Stock#'), vin: get('VIN'), year: yr,
-    make: tc(get('Make')), model: tc(get('Model')), trim: get('Style'),
-    type: tc(get('Vehicle Type')), body: get('Body Type'),
-    mileage: get('Mileage').replace(/[^0-9]/g, ''), color: tc(get('Primary Color')),
-    engine: get('Engine'), transmission: get('Transmission'), drivetrain: get('Drivetrain'),
-    fuel: tc(get('Fuel Type')),
-    price: parseFloat((get('Retail Price') || get('Internet Price')).replace(/[$,]/g, '')) || 0,
-    features: (() => { const m = text.match(/Features[\s\-]+(.+?)(?=\-{5,}|$)/is); return m ? m[1].replace(/\s+/g, ' ').trim() : ''; })(),
-    photos: [], status: 'needs-photos'
+    stock: g(['stock #', 'stock#']),
+    vin: g(['vin']),
+    year: yr,
+    make: tc(g(['make'])),
+    model: tc(g(['model'])),
+    trim: g(['style']),
+    type: tc(g(['vehicle type'])),
+    body: g(['body type']),
+    mileage: g(['mileage']).replace(/[^0-9]/g, ''),
+    color: tc(g(['primary color'])),
+    engine: g(['engine']),
+    transmission: g(['transmission']),
+    drivetrain: g(['drivetrain']),
+    fuel: tc(g(['fuel type'])),
+    price: parseFloat((g(['retail price']) || g(['internet price'])).replace(/[$,]/g, '')) || 0,
+    features: features,
+    photos: [],
+    status: 'needs-photos'
   };
 }
 
