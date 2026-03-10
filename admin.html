@@ -337,7 +337,9 @@ document.getElementById('deviceBadge').textContent = isMobile ? 'Mobile' : 'Desk
 
 // API URL stored in localStorage
 const DEFAULT_API = 'https://script.google.com/macros/s/AKfycbyiMVNemGvCVBItbL91HUwrdvhRdql9M1ZZSVeh5DeLoFQntnKcx4FfF8H4icWSdUvBXg/exec';
-let API_URL = localStorage.getItem('lotmanager_api_url') || DEFAULT_API;
+// Always use the hardcoded URL — clear any old cached URLs
+localStorage.removeItem('lotmanager_api_url');
+let API_URL = DEFAULT_API;
 
 // Local state — loaded from Google Sheet, NOT localStorage
 let vehicleQueue = [];
@@ -1108,9 +1110,19 @@ async function moveToQueue(stock, vin) {
   if (!confirm('Move back to queue? This will remove it from the website until re-published.')) return;
   try {
     toast('Moving to queue...', '');
-    const vehicle = { stock, vin, status: 'queue' };
+    // Find the full vehicle data from the stored list
+    const fullVehicle = window._listedVehicles.find(v => v['Stock#'] == stock || v['VIN'] == vin);
+    const vehicle = fullVehicle ? {
+      stock: fullVehicle['Stock#'], vin: fullVehicle['VIN'], year: fullVehicle['Year'],
+      make: fullVehicle['Make'], model: fullVehicle['Model'], trim: fullVehicle['Trim'],
+      type: fullVehicle['Type'], body: fullVehicle['Body'], mileage: fullVehicle['Mileage'],
+      color: fullVehicle['Color'], engine: fullVehicle['Engine'], transmission: fullVehicle['Transmission'],
+      drivetrain: fullVehicle['Drivetrain'], fuel: fullVehicle['Fuel'], price: fullVehicle['Price'],
+      features: fullVehicle['Features'], status: 'queue'
+    } : { stock, vin, status: 'queue' };
+    const existingPhotos = fullVehicle && fullVehicle['Photos'] ? fullVehicle['Photos'].split(',').map(u => u.trim()).filter(Boolean) : [];
     const r = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'update', vehicle, photos: [] }) });
+      body: JSON.stringify({ action: 'update', vehicle, photos: existingPhotos }) });
     const result = await r.json();
     if (result.success) { toast('Moved to queue', 'success'); closeEditModal(); loadFromSheet(); switchTab('queue'); }
     else toast('Error: ' + (result.error || ''), 'error');
